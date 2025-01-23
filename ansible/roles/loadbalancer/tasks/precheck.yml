@@ -190,20 +190,20 @@
     - api_interface_address != kolla_internal_vip_address
 
 # FIXME(yoctozepto): this req seems arbitrary, they need not be, just routable is fine
-- name: Checking if kolla_internal_vip_address is in the same network as api_interface on all nodes
-  become: true
-  command: ip -o addr show dev {{ api_interface }}
-  register: ip_addr_output
-  changed_when: false
-  failed_when: >-
-    ( ip_addr_output is failed or
-     kolla_internal_vip_address | ipaddr(ip_addr_output.stdout.split()[3]) is none)
-  check_mode: false
-  when:
-    - enable_haproxy | bool
-    - enable_keepalived | bool
-    - container_facts['keepalived'] is not defined
-    - inventory_hostname in groups['loadbalancer']
+#- name: Checking if kolla_internal_vip_address is in the same network as api_interface on all nodes
+#  become: true
+#  command: ip -o addr show dev {{ api_interface }}
+#  register: ip_addr_output
+#  changed_when: false
+#  failed_when: >-
+#    ( ip_addr_output is failed or
+#     kolla_internal_vip_address | ipaddr(ip_addr_output.stdout.split()[3]) is none)
+#  check_mode: false
+#  when:
+#    - enable_haproxy | bool
+#    - enable_keepalived | bool
+#    - container_facts['keepalived'] is not defined
+#    - inventory_hostname in groups['loadbalancer']
 
 - name: Getting haproxy stat
   become: true
