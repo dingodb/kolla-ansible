@@ -117,6 +117,9 @@
     image: "{{ service.image }}"
     volumes: "{{ service.volumes }}"
     dimensions: "{{ service.dimensions }}"
+    privileged: "{{ service.privileged | default(False) }}"
+  when:
+    - kolla_action != "config"
 
 - name: Restart prometheus-libvirt-exporter container
   vars:
