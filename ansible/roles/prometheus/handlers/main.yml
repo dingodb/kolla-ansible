@@ -148,6 +148,7 @@
     image: "{{ service.image }}"
     volumes: "{{ service.volumes }}"
     dimensions: "{{ service.dimensions }}"
+    privileged: "{{ service.privileged | default(False) }}"
   when:
     - kolla_action != "config"
 
