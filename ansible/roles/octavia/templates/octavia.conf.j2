@@ -158,7 +158,7 @@ ca_certificates_file = {{ openstack_cacert }}
 
 [task_flow]
 persistence_connection = mysql+pymysql://{{ octavia_persistence_database_user }}:{{ octavia_persistence_database_password }}@{{ octavia_persistence_database_address }}/{{ octavia_persistence_database_name }}
-jobboard_enabled = true
+jobboard_enabled = False
 jobboard_backend_password = "{{ redis_master_password }}"
 jobboard_backend_port = "{{ redis_port }}"
 jobboard_backend_hosts = {% for host in groups['redis'] %}{{ 'api' | kolla_address(host) | put_address_in_context('url') }}{% if not loop.last %},{% endif %}{% endfor %}
