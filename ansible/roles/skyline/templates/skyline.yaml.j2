@@ -1,4 +1,8 @@
 default:
+  prometheus_basic_auth_user: admin
+  prometheus_basic_auth_password: "{{ prometheus_password }}"
+  prometheus_enable_basic_auth: true
+  prometheus_endpoint: "{{ prometheus_internal_fqdn | kolla_url(internal_protocol, prometheus_port) }}"
   access_token_expire: {{ skyline_access_token_expire_seconds }}
   access_token_renew: {{ skyline_access_token_renew_seconds }}
   cors_allow_origins: {{ skyline_backend_cors_origins }}
