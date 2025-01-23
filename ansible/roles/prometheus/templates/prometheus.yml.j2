@@ -1,6 +1,6 @@
 global:
-  scrape_interval: {{ prometheus_scrape_interval }}
-  scrape_timeout: 10s
+  scrape_interval: 600s
+  scrape_timeout: 200s
   evaluation_interval: 15s
 {% if prometheus_external_labels %}
   external_labels:
