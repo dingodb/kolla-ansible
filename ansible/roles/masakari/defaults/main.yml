@@ -43,6 +43,7 @@ masakari_services:
     ipc_mode: host
     image: "{{ masakari_monitors_image_full }}"
     volumes: "{{ masakari_hostmonitor_default_volumes + masakari_hostmonitor_extra_volumes }}"
+    privileged: True
     dimensions: "{{ masakari_hostmonitor_dimensions }}"
 
 ####################
