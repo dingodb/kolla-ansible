@@ -7,10 +7,6 @@
 - name: Group hosts based on configuration
   hosts: all
   gather_facts: false
-  max_fail_percentage: >-
-    {{ group_hosts_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   tasks:
     - name: Group hosts based on Kolla action
       group_by:
@@ -33,6 +29,7 @@
         - enable_cyborg_{{ enable_cyborg | bool }}
         - enable_designate_{{ enable_designate | bool }}
         - enable_etcd_{{ enable_etcd | bool }}
+        - enable_freezer_{{ enable_freezer | bool }}
         - enable_glance_{{ enable_glance | bool }}
         - enable_gnocchi_{{ enable_gnocchi | bool }}
         - enable_grafana_{{ enable_grafana | bool }}
@@ -53,35 +50,38 @@
         - enable_memcached_{{ enable_memcached | bool }}
         - enable_mistral_{{ enable_mistral | bool }}
         - enable_multipathd_{{ enable_multipathd | bool }}
+        - enable_murano_{{ enable_murano | bool }}
         - enable_neutron_{{ enable_neutron | bool }}
         - enable_nova_{{ enable_nova | bool }}
         - enable_octavia_{{ enable_octavia | bool }}
         - enable_opensearch_{{ enable_opensearch | bool }}
         - enable_opensearch_dashboards_{{ enable_opensearch_dashboards | bool }}
         - enable_openvswitch_{{ enable_openvswitch | bool }}_enable_ovs_dpdk_{{ enable_ovs_dpdk | bool }}
+        - enable_outward_rabbitmq_{{ enable_outward_rabbitmq | bool }}
         - enable_ovn_{{ enable_ovn | bool }}
         - enable_placement_{{ enable_placement | bool }}
         - enable_prometheus_{{ enable_prometheus | bool }}
         - enable_rabbitmq_{{ enable_rabbitmq | bool }}
         - enable_redis_{{ enable_redis | bool }}
+        - enable_sahara_{{ enable_sahara | bool }}
+        - enable_senlin_{{ enable_senlin | bool }}
         - enable_skyline_{{ enable_skyline | bool }}
+        - enable_solum_{{ enable_solum | bool }}
         - enable_swift_{{ enable_swift | bool }}
         - enable_tacker_{{ enable_tacker | bool }}
         - enable_telegraf_{{ enable_telegraf | bool }}
         - enable_trove_{{ enable_trove | bool }}
         - enable_venus_{{ enable_venus | bool }}
+        - enable_vitrage_{{ enable_vitrage | bool }}
         - enable_watcher_{{ enable_watcher | bool }}
         - enable_zun_{{ enable_zun | bool }}
+        - enable_dingoops_{{ enable_dingoops | bool }}
   tags: always
 
 - name: Apply role prechecks
   gather_facts: false
   # Apply only when kolla action is 'precheck'.
   hosts: kolla_action_precheck
-  max_fail_percentage: >-
-    {{ prechecks_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - role: prechecks
 
@@ -93,10 +93,6 @@
     - kolla-logs
     - kolla-toolbox
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ common_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   tags:
     - common
   roles:
@@ -108,10 +104,6 @@
     - loadbalancer
     - '&enable_loadbalancer_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ loadbalancer_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   tags:
     - haproxy
     - keepalived
@@ -165,6 +157,11 @@
             tasks_from: loadbalancer
           tags: etcd
           when: enable_etcd | bool
+        - include_role:
+            name: freezer
+            tasks_from: loadbalancer
+          tags: freezer
+          when: enable_freezer | bool
         - include_role:
             name: glance
             tasks_from: loadbalancer
@@ -241,6 +238,11 @@
           tags: mistral
           when: enable_mistral | bool
         - include_role:
+            name: murano
+            tasks_from: loadbalancer
+          tags: murano
+          when: enable_murano | bool
+        - include_role:
             name: neutron
             tasks_from: loadbalancer
           tags: neutron
@@ -285,12 +287,27 @@
           vars:
             role_rabbitmq_cluster_cookie:
             role_rabbitmq_groups:
-          when: enable_rabbitmq | bool
+          when: enable_rabbitmq | bool or enable_outward_rabbitmq | bool
+        - include_role:
+            name: sahara
+            tasks_from: loadbalancer
+          tags: sahara
+          when: enable_sahara | bool
+        - include_role:
+            name: senlin
+            tasks_from: loadbalancer
+          tags: senlin
+          when: enable_senlin | bool
         - include_role:
             name: skyline
             tasks_from: loadbalancer
           tags: skyline
           when: enable_skyline | bool
+        - include_role:
+            name: solum
+            tasks_from: loadbalancer
+          tags: solum
+          when: enable_solum | bool
         - include_role:
             name: swift
             tasks_from: loadbalancer
@@ -312,6 +329,11 @@
           tags: venus
           when: enable_venus | bool
         - include_role:
+            name: vitrage
+            tasks_from: loadbalancer
+          tags: vitrage
+          when: enable_vitrage | bool
+        - include_role:
             name: watcher
             tasks_from: loadbalancer
           tags: watcher
@@ -321,6 +343,11 @@
             tasks_from: loadbalancer
           tags: zun
           when: enable_zun | bool
+        - include_role:
+            name: dingoops
+            tasks_from: loadbalancer
+          tags: dingoops
+          when: enable_dingoops | bool
       when:
         - enable_haproxy | bool
         - kolla_action in ['deploy', 'reconfigure', 'upgrade', 'config']
@@ -341,10 +368,6 @@
     - collectd
     - '&enable_collectd_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ collectd_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: collectd,
         tags: collectd }
@@ -355,10 +378,6 @@
     - influxdb
     - '&enable_influxdb_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ influxdb_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: influxdb,
         tags: influxdb }
@@ -369,10 +388,6 @@
     - telegraf
     - '&enable_telegraf_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ telegraf_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: telegraf,
         tags: telegraf }
@@ -383,10 +398,6 @@
     - redis
     - '&enable_redis_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ redis_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: redis,
         tags: redis }
@@ -401,10 +412,6 @@
     - memcached
     - '&enable_memcached_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ memcached_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: memcached,
         tags: [memcache, memcached] }
@@ -415,6 +422,7 @@
     - prometheus
     - prometheus-node-exporter
     - prometheus-mysqld-exporter
+    - prometheus-haproxy-exporter
     - prometheus-memcached-exporter
     - prometheus-cadvisor
     - prometheus-alertmanager
@@ -424,10 +432,6 @@
     - prometheus-libvirt-exporter
     - '&enable_prometheus_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ prometheus_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: prometheus,
         tags: prometheus }
@@ -439,10 +443,6 @@
     - tgtd
     - '&enable_iscsid_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ iscsid_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: iscsi,
         tags: iscsi }
@@ -453,10 +453,6 @@
     - multipathd
     - '&enable_multipathd_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ multipathd_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: multipathd,
         tags: multipathd }
@@ -468,10 +464,6 @@
   hosts:
     - etcd
     - '&enable_etcd_True'
-  max_fail_percentage: >-
-    {{ etcd_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: etcd,
         tags: etcd }
@@ -482,10 +474,6 @@
     - keystone
     - '&enable_keystone_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ keystone_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: keystone,
         tags: keystone }
@@ -496,10 +484,6 @@
     - opensearch
     - '&enable_opensearch_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ opensearch_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: opensearch,
         tags: opensearch }
@@ -513,10 +497,6 @@
     - swift-proxy-server
     - '&enable_swift_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ swift_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: swift,
         tags: swift }
@@ -529,10 +509,6 @@
     - kolla-toolbox
     - '&enable_ceph_rgw_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ ceph_rgw_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: ceph-rgw,
         tags: ceph-rgw }
@@ -543,10 +519,6 @@
     - glance-api
     - '&enable_glance_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ glance_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: glance,
         tags: glance }
@@ -561,10 +533,6 @@
     - ironic-http
     - '&enable_ironic_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ ironic_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: ironic,
         tags: ironic }
@@ -578,10 +546,6 @@
     - cinder-volume
     - '&enable_cinder_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ cinder_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: cinder,
         tags: cinder }
@@ -592,13 +556,13 @@
     - placement-api
     - '&enable_placement_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ placement_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: placement,
         tags: placement }
+
+# Nova deployment is more complicated than other services, so is covered in its
+# own playbook.
+- import_playbook: nova.yml
 
 - name: Apply role openvswitch
   gather_facts: false
@@ -606,10 +570,6 @@
     - openvswitch
     - '&enable_openvswitch_True_enable_ovs_dpdk_False'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ openvswitch_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: openvswitch,
         tags: openvswitch,
@@ -621,10 +581,6 @@
     - openvswitch
     - '&enable_openvswitch_True_enable_ovs_dpdk_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ ovs_dpdk_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: ovs-dpdk,
         tags: ovs-dpdk,
@@ -636,10 +592,6 @@
     - ovn-controller
     - '&enable_ovn_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ ovn_controller_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: ovn-controller,
         tags: [ovn, ovn-controller] }
@@ -652,17 +604,9 @@
     - ovn-sb-db
     - '&enable_ovn_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ ovn_db_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: ovn-db,
         tags: [ovn, ovn-db] }
-
-# Nova deployment is more complicated than other services, so is covered in its
-# own playbook.
-- import_playbook: nova.yml
 
 - name: Apply role neutron
   gather_facts: false
@@ -680,10 +624,6 @@
     - manila-share
     - '&enable_neutron_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ neutron_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: neutron,
         tags: neutron }
@@ -694,10 +634,6 @@
     - compute
     - '&enable_kuryr_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ kuryr_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: kuryr,
         tags: kuryr }
@@ -709,10 +645,6 @@
     - hacluster-remote
     - '&enable_hacluster_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ hacluster_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: hacluster,
         tags: hacluster }
@@ -725,10 +657,6 @@
     - heat-engine
     - '&enable_heat_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ heat_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: heat,
         tags: heat }
@@ -739,13 +667,35 @@
     - horizon
     - '&enable_horizon_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ horizon_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: horizon,
         tags: horizon }
+
+- name: Apply role murano
+  gather_facts: false
+  hosts:
+    - murano-api
+    - murano-engine
+    - '&enable_murano_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  roles:
+    - { role: murano,
+        tags: murano }
+
+- name: Apply role solum
+  gather_facts: false
+  hosts:
+    - solum-api
+    - solum-worker
+    - solum-deployer
+    - solum-conductor
+    - solum-application-deployment
+    - solum-image-builder
+    - '&enable_solum_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  roles:
+    - { role: solum,
+        tags: solum }
 
 - name: Apply role magnum
   gather_facts: false
@@ -754,10 +704,6 @@
     - magnum-conductor
     - '&enable_magnum_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ magnum_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: magnum,
         tags: magnum }
@@ -771,13 +717,20 @@
     - mistral-event-engine
     - '&enable_mistral_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ mistral_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: mistral,
         tags: mistral }
+
+- name: Apply role sahara
+  gather_facts: false
+  hosts:
+    - sahara-api
+    - sahara-engine
+    - '&enable_sahara_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  roles:
+    - { role: sahara,
+        tags: sahara }
 
 - name: Apply role manila
   gather_facts: false
@@ -788,10 +741,6 @@
     - manila-scheduler
     - '&enable_manila_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ manila_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: manila,
         tags: manila }
@@ -804,10 +753,6 @@
     - gnocchi-statsd
     - '&enable_gnocchi_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ gnocchi_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: gnocchi,
         tags: gnocchi }
@@ -821,10 +766,6 @@
     - ceilometer-ipmi
     - '&enable_ceilometer_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ ceilometer_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: ceilometer,
         tags: ceilometer }
@@ -838,10 +779,6 @@
     - aodh-notifier
     - '&enable_aodh_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ aodh_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: aodh,
         tags: aodh }
@@ -854,10 +791,6 @@
     - barbican-worker
     - '&enable_barbican_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ barbican_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: barbican,
         tags: barbican }
@@ -870,10 +803,6 @@
     - cyborg-conductor
     - '&enable_cyborg_True'
   serial: '{{ serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ cyborg_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: cyborg,
         tags: cyborg }
@@ -890,10 +819,6 @@
     - designate-backend-bind9
     - '&enable_designate_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ designate_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: designate,
         tags: designate }
@@ -906,10 +831,6 @@
     - trove-taskmanager
     - '&enable_trove_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ trove_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: trove,
         tags: trove }
@@ -922,10 +843,6 @@
     - watcher-applier
     - '&enable_watcher_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ watcher_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: watcher,
         tags: watcher }
@@ -936,10 +853,6 @@
     - grafana
     - '&enable_grafana_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ grafana_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: grafana,
         tags: grafana }
@@ -951,13 +864,33 @@
     - cloudkitty-processor
     - '&enable_cloudkitty_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ cloudkitty_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: cloudkitty,
         tags: cloudkitty }
+
+- name: Apply role freezer
+  gather_facts: false
+  hosts:
+    - freezer-api
+    - freezer-scheduler
+    - '&enable_freezer_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  roles:
+    - { role: freezer,
+        tags: freezer }
+
+- name: Apply role senlin
+  gather_facts: false
+  hosts:
+    - senlin-api
+    - senlin-conductor
+    - senlin-engine
+    - senlin-health-manager
+    - '&enable_senlin_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  roles:
+    - { role: senlin,
+        tags: senlin }
 
 - name: Apply role tacker
   gather_facts: false
@@ -966,10 +899,6 @@
     - tacker-conductor
     - '&enable_tacker_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ tacker_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: tacker,
         tags: tacker }
@@ -983,10 +912,6 @@
     - octavia-worker
     - '&enable_octavia_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ octavia_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: octavia,
         tags: octavia }
@@ -1000,13 +925,23 @@
     - zun-cni-daemon
     - '&enable_zun_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ zun_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: zun,
         tags: zun }
+
+- name: Apply role vitrage
+  gather_facts: false
+  hosts:
+    - vitrage-api
+    - vitrage-graph
+    - vitrage-notifier
+    - vitrage-ml
+    - vitrage-persistor
+    - '&enable_vitrage_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  roles:
+    - { role: vitrage,
+        tags: vitrage }
 
 - name: Apply role blazar
   gather_facts: false
@@ -1015,10 +950,6 @@
     - blazar-manager
     - '&enable_blazar_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ blazar_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: blazar,
         tags: blazar }
@@ -1032,10 +963,6 @@
     - masakari-instancemonitor
     - '&enable_masakari_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ masakari_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: masakari,
         tags: masakari }
@@ -1047,10 +974,6 @@
     - venus-manager
     - '&enable_venus_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ venus_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: venus,
         tags: venus }
@@ -1061,10 +984,16 @@
     - skyline
     - '&enable_skyline_True'
   serial: '{{ kolla_serial|default("0") }}'
-  max_fail_percentage: >-
-    {{ skyline_max_fail_percentage |
-       default(kolla_max_fail_percentage) |
-       default(100) }}
   roles:
     - { role: skyline,
         tags: skyline }
+
+- name: Apply role dingoops
+  gather_facts: false
+  hosts:
+    - dingoops
+    - '&enable_skyline_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  roles:
+    - { role: dingoops,
+        tags: dingoops }

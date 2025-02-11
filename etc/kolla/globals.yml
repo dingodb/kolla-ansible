@@ -429,6 +429,7 @@ workaround_ansible_issue_8743: yes
 #enable_venus: "no"
 #enable_watcher: "no"
 #enable_zun: "no"
+#enable_skyline: "no"
 
 #############
 # S3 options

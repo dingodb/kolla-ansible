@@ -1,0 +1,110 @@
+---
+dingoops_services:
+  dingoops:
+    container_name: dingoops
+    group: dingoops
+    enabled: true
+    image: "{{ dingoops_image_full }}"
+    volumes: "{{ dingoops_default_volumes + dingoops_extra_volumes }}"
+    dimensions: "{{ dingoops_dimensions }}"
+    healthcheck: "{{ dingoops_healthcheck }}"
+    haproxy:
+      dingoops:
+        enabled: "{{ enable_dingoops }}"
+        mode: "http"
+        external: false
+        port: "{{ dingoops_port }}"
+        listen_port: "{{ dingoops_listen_port }}"
+        tls_backend: "{{ dingoops_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+      dingoops_external:
+        enabled: "{{ enable_dingoops }}"
+        mode: "http"
+        external: true
+        external_fqdn: "{{ dingoops_external_fqdn }}"
+        port: "{{ dingoops_port }}"
+        listen_port: "{{ dingoops_listen_port }}"
+        tls_backend: "{{ dingoops_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+
+dingoops_database_address: "{{ database_address | put_address_in_context('url') }}:{{ database_port }}"
+dingoops_tag: "{{ openstack_tag }}"
+
+dingoops_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/dingoops"
+dingoops_image_full: "{{ dingoops_image }}:{{ dingoops_tag }}"
+dingoops_config_directory: "/etc/dingoops"
+dingoops_default_volumes:
+  - "{{ node_config_directory }}/dingoops/:{{ dingoops_config_directory }}/:ro"
+  - "/etc/localtime:/etc/localtime:ro"
+  - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
+  - "kolla_logs:/var/log/kolla/"
+
+dingoops_extra_volumes: "{{ default_extra_volumes }}"
+dingoops_dimensions: "{{ default_container_dimensions }}"
+
+dingoops_enable_healthchecks: "{{ enable_container_healthchecks }}"
+dingoops_healthcheck_interval: "{{ default_container_healthcheck_interval }}"
+dingoops_healthcheck_retries: "{{ default_container_healthcheck_retries }}"
+dingoops_healthcheck_start_period: "{{ default_container_healthcheck_start_period }}"
+dingoops_healthcheck_test: ["CMD-SHELL", "curl --max-time 10 http://{{ api_interface_address | put_address_in_context('url') }}:{{ dingoops_listen_port }}/docs"]
+dingoops_healthcheck_timeout: "{{ default_container_healthcheck_timeout }}"
+dingoops_healthcheck:
+  interval: "{{ dingoops_healthcheck_interval }}"
+  retries: "{{ dingoops_healthcheck_retries }}"
+  start_period: "{{ dingoops_healthcheck_start_period }}"
+  test: "{% if dingoops_enable_healthchecks | bool %}{{ dingoops_healthcheck_test }}{% else %}NONE{% endif %}"
+  timeout: "{{ dingoops_healthcheck_timeout }}"
+
+openstack_dingoops_auth: "{{ openstack_auth }}"
+dingoops_port: 8889
+dingoops_public_port: 8889
+dingoops_listen_port: "{{ dingoops_port }}"
+####################
+# OpenStack
+####################
+dingoops_internal_base_endpoint: "{{ dingoops_internal_fqdn | kolla_url(internal_protocol, dingoops_port) }}"
+dingoops_public_base_endpoint: "{{ dingoops_external_fqdn | kolla_url(public_protocol, dingoops_public_port) }}"
+
+dingoops_keystone_user: dingoops
+dingoops_keystone_password: Zetyun.123
+dingoops_ks_services:
+  - name: "dingoops"
+    type: "panel"
+    description: "OpenStack assets Service"
+    endpoints:
+      - {'interface': 'internal', 'url': '{{ dingoops_internal_base_endpoint }}'}
+      - {'interface': 'public', 'url': '{{ dingoops_public_base_endpoint }}'}
+
+dingoops_ks_users:
+  - project: "service"
+    user: "{{ dingoops_keystone_user }}"
+    password: "{{ dingoops_keystone_password }}"
+    role: "admin"
+
+####################
+# Database
+####################
+dingoops_database_name: "dingoops"
+dingoops_database_user: "{% if use_preconfigured_databases | bool and use_common_mariadb_user | bool %}{{ database_user }}{% else %}dingoops{% endif %}"
+dingoops_database_address: "{{ database_address | put_address_in_context('url') }}:{{ database_port }}"
+dingoops_database_password: Zetyun.123
+####################
+# Database sharding
+####################
+dingoops_database_shard_root_user: "{% if enable_proxysql | bool %}root_shard_{{ dingoops_database_shard_id }}{% else %}{{ database_user }}{% endif %}"
+dingoops_database_shard_id: "{{ mariadb_default_database_shard_id | int }}"
+dingoops_database_shard:
+  users:
+    - user: "{{ dingoops_database_user }}"
+      password: "{{ dingoops_database_password }}"
+  rules:
+    - schema: "{{ dingoops_database_name }}"
+      shard_id: "{{ dingoops_database_shard_id }}"
+
+
+####################
+# TLS
+####################
+dingoops_enable_tls_backend: "{{ kolla_enable_tls_backend }}"
