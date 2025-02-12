@@ -36,6 +36,12 @@ workaround_ansible_issue_8743: yes
 # By default, this list includes all hosts.
 #kolla_ansible_delegate_facts_hosts: "{{ groups['all'] }}"
 
+# This variable may be used to set the maximum failure percentage for all
+# plays. More fine-grained control is possible via per-service variables, e.g.
+# nova_max_fail_percentage. The default behaviour is to set a max fail
+# percentage of 100, which is equivalent to not setting it.
+#kolla_max_fail_percentage:
+
 ###############
 # Kolla options
 ###############
@@ -431,6 +437,8 @@ workaround_ansible_issue_8743: yes
 #enable_proxysql: "yes"
 #enable_redis: "no"
 #enable_skyline: "no"
+#enable_swift: "no"
+#enable_swift_s3api: "no"
 #enable_tacker: "no"
 #enable_telegraf: "no"
 #enable_trove: "no"
@@ -438,6 +446,7 @@ workaround_ansible_issue_8743: yes
 #enable_venus: "no"
 #enable_watcher: "no"
 #enable_zun: "no"
+#enable_skyline: "no"
 
 #############
 # S3 options

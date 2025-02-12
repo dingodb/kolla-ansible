@@ -159,6 +159,9 @@ control
 [skyline:children]
 control
 
+[dingoops:children]
+control
+
 [redis:children]
 control
 
@@ -492,6 +495,7 @@ skyline
 
 [skyline-console:children]
 skyline
+
 
 # Tacker
 [tacker-server:children]

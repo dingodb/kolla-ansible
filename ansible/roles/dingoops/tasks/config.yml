@@ -1,0 +1,40 @@
+---
+- name: Ensuring config directories exist
+  file:
+    path: "{{ node_config_directory }}/{{ item.key }}"
+    state: "directory"
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "0770"
+  become: true
+  with_dict: "{{ dingoops_services | select_services_enabled_and_mapped_to_host }}"
+
+- include_tasks: copy-certs.yml
+  when:
+    - kolla_copy_ca_into_containers | bool or dingoops_enable_tls_backend | bool
+
+- name: Copying over dingoops.conf
+  vars:
+    dingoops: "{{ dingoops_services['dingoops'] }}"
+  template:
+    src: "{{ role_path }}/templates/dingoops.conf.j2"
+    dest: "{{ node_config_directory }}/dingoops/dingoops.conf"
+    mode: "0660"
+  become: true
+  when:
+    - dingoops.enabled | bool
+  notify:
+    - Restart dingoops container
+
+- name: Copying over gunicorn.py
+  vars:
+    dingoops: "{{ dingoops_services['dingoops'] }}"
+  template:
+    src: "{{ role_path }}/templates/gunicorn.py"
+    dest: "{{ node_config_directory }}/dingoops/gunicorn.py"
+    mode: "0660"
+  become: true
+  when:
+    - dingoops.enabled | bool
+  notify:
+    - Restart dingoops container

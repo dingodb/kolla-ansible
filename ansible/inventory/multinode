@@ -177,6 +177,9 @@ control
 [skyline:children]
 control
 
+[dingoops:children]
+control
+
 [redis:children]
 control
 
