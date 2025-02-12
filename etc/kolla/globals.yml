@@ -24,12 +24,6 @@
 # Dummy variable to allow Ansible to accept this file.
 workaround_ansible_issue_8743: yes
 
-# This variable may be used to set the maximum failure percentage for all
-# plays. More fine-grained control is possible via per-service variables, e.g.
-# nova_max_fail_percentage. The default behaviour is to set a max fail
-# percentage of 100, which is equivalent to not setting it.
-#kolla_max_fail_percentage:
-
 ###############
 # Kolla options
 ###############
@@ -40,7 +34,7 @@ workaround_ansible_issue_8743: yes
 #kolla_base_distro: "rocky"
 
 # Do not override this unless you know what you are doing.
-#openstack_release: "master"
+#openstack_release: "2023.2"
 
 # Docker image tag used by default.
 #openstack_tag: "{{ openstack_release ~ openstack_tag_suffix }}"
@@ -122,7 +116,7 @@ workaround_ansible_issue_8743: yes
 # interface by default. This interface must contain an IP address.
 # It is possible for hosts to have non-matching names of interfaces - these can
 # be set in an inventory file per host or per group or stored separately, see
-#     http://docs.ansible.com/ansible/latest/intro_inventory.html
+#     http://docs.ansible.com/ansible/intro_inventory.html
 # Yet another way to workaround the naming problem is to create a bond for the
 # interface on all hosts and give the bond name here. Similar strategy can be
 # followed for other types of interfaces.
@@ -245,7 +239,7 @@ workaround_ansible_issue_8743: yes
 #kolla_copy_ca_into_containers: "no"
 #haproxy_backend_cacert: "{{ 'ca-certificates.crt' if kolla_base_distro in ['debian', 'ubuntu'] else 'ca-bundle.trust.crt' }}"
 #haproxy_backend_cacert_dir: "/etc/ssl/certs"
-#database_enable_tls_backend: "{{ 'yes' if kolla_enable_tls_backend | bool and enable_proxysql | bool else 'no' }}"
+
 ##################
 # Backend options
 ##################
@@ -281,13 +275,6 @@ workaround_ansible_issue_8743: yes
 # attempt to renew Let's Encrypt certificate every 12 hours
 #letsencrypt_cron_renew_schedule:  "0   */12   *   *   *"
 
-####################
-# LetsEncrypt external account binding options
-####################
-#letsencrypt_external_account_binding: "no"
-#letsencrypt_eab_hmac: ""
-#letsencrypt_eab_key_id: ""
-
 ################
 # Region options
 ################
@@ -321,6 +308,7 @@ workaround_ansible_issue_8743: yes
 #enable_neutron: "{{ enable_openstack_core | bool }}"
 #enable_nova: "{{ enable_openstack_core | bool }}"
 #enable_rabbitmq: "{{ 'yes' if om_rpc_transport == 'rabbit' or om_notify_transport == 'rabbit' else 'no' }}"
+#enable_outward_rabbitmq: "{{ enable_murano | bool }}"
 
 # OpenStack services can be enabled or disabled with these options
 #enable_aodh: "no"
@@ -334,6 +322,7 @@ workaround_ansible_issue_8743: yes
 #enable_ceph_rgw_loadbalancer: "{{ enable_ceph_rgw | bool }}"
 #enable_cinder: "no"
 #enable_cinder_backup: "yes"
+#enable_cinder_backend_hnas_nfs: "no"
 #enable_cinder_backend_iscsi: "{{ enable_cinder_backend_lvm | bool }}"
 #enable_cinder_backend_lvm: "no"
 #enable_cinder_backend_nfs: "no"
@@ -341,7 +330,6 @@ workaround_ansible_issue_8743: yes
 #enable_cinder_backend_pure_iscsi: "no"
 #enable_cinder_backend_pure_fc: "no"
 #enable_cinder_backend_pure_roce: "no"
-#enable_cinder_backend_pure_nvme_tcp: "no"
 #enable_cloudkitty: "no"
 #enable_collectd: "no"
 #enable_cyborg: "no"
@@ -349,7 +337,7 @@ workaround_ansible_issue_8743: yes
 #enable_destroy_images: "no"
 #enable_etcd: "no"
 #enable_fluentd: "yes"
-#enable_fluentd_systemd: "{{ (enable_fluentd | bool) and (enable_central_logging | bool) }}"
+#enable_freezer: "no"
 #enable_gnocchi: "no"
 #enable_gnocchi_statsd: "no"
 #enable_grafana: "no"
@@ -359,17 +347,22 @@ workaround_ansible_issue_8743: yes
 #enable_horizon_blazar: "{{ enable_blazar | bool }}"
 #enable_horizon_cloudkitty: "{{ enable_cloudkitty | bool }}"
 #enable_horizon_designate: "{{ enable_designate | bool }}"
-#enable_horizon_fwaas: "{{ enable_neutron_fwaas | bool }}"
+#enable_horizon_freezer: "{{ enable_freezer | bool }}"
 #enable_horizon_heat: "{{ enable_heat | bool }}"
 #enable_horizon_ironic: "{{ enable_ironic | bool }}"
 #enable_horizon_magnum: "{{ enable_magnum | bool }}"
 #enable_horizon_manila: "{{ enable_manila | bool }}"
 #enable_horizon_masakari: "{{ enable_masakari | bool }}"
 #enable_horizon_mistral: "{{ enable_mistral | bool }}"
+#enable_horizon_murano: "{{ enable_murano | bool }}"
 #enable_horizon_neutron_vpnaas: "{{ enable_neutron_vpnaas | bool }}"
 #enable_horizon_octavia: "{{ enable_octavia | bool }}"
+#enable_horizon_sahara: "{{ enable_sahara | bool }}"
+#enable_horizon_senlin: "{{ enable_senlin | bool }}"
+#enable_horizon_solum: "{{ enable_solum | bool }}"
 #enable_horizon_tacker: "{{ enable_tacker | bool }}"
 #enable_horizon_trove: "{{ enable_trove | bool }}"
+#enable_horizon_vitrage: "{{ enable_vitrage | bool }}"
 #enable_horizon_watcher: "{{ enable_watcher | bool }}"
 #enable_horizon_zun: "{{ enable_zun | bool }}"
 #enable_influxdb: "{{ enable_cloudkitty | bool and cloudkitty_storage_backend == 'influxdb' }}"
@@ -389,10 +382,10 @@ workaround_ansible_issue_8743: yes
 #enable_masakari: "no"
 #enable_mistral: "no"
 #enable_multipathd: "no"
+#enable_murano: "no"
 #enable_neutron_vpnaas: "no"
 #enable_neutron_sriov: "no"
 #enable_neutron_dvr: "no"
-#enable_neutron_fwaas: "no"
 #enable_neutron_qos: "no"
 #enable_neutron_agent_ha: "no"
 #enable_neutron_bgp_dragent: "no"
@@ -408,7 +401,7 @@ workaround_ansible_issue_8743: yes
 #enable_octavia: "no"
 #enable_octavia_driver_agent: "{{ enable_octavia | bool and neutron_plugin_agent == 'ovn' }}"
 #enable_octavia_jobboard: "{{ enable_octavia | bool and 'amphora' in octavia_provider_drivers }}"
-#enable_opensearch: "{{ enable_central_logging | bool or enable_osprofiler | bool or (enable_cloudkitty | bool and cloudkitty_storage_backend == 'opensearch') }}"
+#enable_opensearch: "{{ enable_central_logging | bool or enable_osprofiler | bool or (enable_cloudkitty | bool and cloudkitty_storage_backend == 'elasticsearch') }}"
 #enable_opensearch_dashboards: "{{ enable_opensearch | bool }}"
 #enable_opensearch_dashboards_external: "{{ enable_opensearch_dashboards | bool }}"
 #enable_openvswitch: "{{ enable_neutron | bool and neutron_plugin_agent != 'linuxbridge' }}"
@@ -417,9 +410,12 @@ workaround_ansible_issue_8743: yes
 #enable_osprofiler: "no"
 #enable_placement: "{{ enable_nova | bool or enable_zun | bool }}"
 #enable_prometheus: "no"
-#enable_proxysql: "yes"
+#enable_proxysql: "no"
 #enable_redis: "no"
+#enable_sahara: "no"
+#enable_senlin: "no"
 #enable_skyline: "no"
+#enable_solum: "no"
 #enable_swift: "no"
 #enable_swift_s3api: "no"
 #enable_tacker: "no"
@@ -427,9 +423,9 @@ workaround_ansible_issue_8743: yes
 #enable_trove: "no"
 #enable_trove_singletenant: "no"
 #enable_venus: "no"
+#enable_vitrage: "no"
 #enable_watcher: "no"
 #enable_zun: "no"
-#enable_skyline: "no"
 
 #############
 # S3 options
@@ -473,20 +469,26 @@ workaround_ansible_issue_8743: yes
 
 # Glance
 #ceph_glance_user: "glance"
+#ceph_glance_keyring: "client.{{ ceph_glance_user }}.keyring"
 #ceph_glance_pool_name: "images"
 # Cinder
 #ceph_cinder_user: "cinder"
+#ceph_cinder_keyring: "client.{{ ceph_cinder_user }}.keyring"
 #ceph_cinder_pool_name: "volumes"
 #ceph_cinder_backup_user: "cinder-backup"
+#ceph_cinder_backup_keyring: "client.{{ ceph_cinder_backup_user }}.keyring"
 #ceph_cinder_backup_pool_name: "backups"
 # Nova
+#ceph_nova_keyring: "{{ ceph_cinder_keyring }}"
 #ceph_nova_user: "{{ ceph_cinder_user }}"
 #ceph_nova_pool_name: "vms"
 # Gnocchi
 #ceph_gnocchi_user: "gnocchi"
+#ceph_gnocchi_keyring: "client.{{ ceph_gnocchi_user }}.keyring"
 #ceph_gnocchi_pool_name: "gnocchi"
 # Manila
 #ceph_manila_user: "manila"
+#ceph_manila_keyring: "client.{{ ceph_manila_user }}.keyring"
 
 #############################
 # Keystone - Identity Options
@@ -609,11 +611,13 @@ workaround_ansible_issue_8743: yes
 # The number of fake driver per compute node
 #num_nova_fake_per_node: 5
 
-# The "nova_safety_upgrade" controls whether the nova services
-# are all stopped before rolling upgrade to the new version,
-# for the safety and availability. If "nova_safety_upgrade" is "yes",
-# that will stop all nova services (except nova-compute) for no failed
-# API operations before upgrade to the new version. And opposite.
+# The flag "nova_safety_upgrade" need to be consider when
+# "nova_enable_rolling_upgrade" is enabled. The "nova_safety_upgrade"
+# controls whether the nova services are all stopped before rolling
+# upgrade to the new version, for the safety and availability.
+# If "nova_safety_upgrade" is "yes", that will stop all nova services (except
+# nova-compute) for no failed API operations before upgrade to the
+# new version. And opposite.
 #nova_safety_upgrade: "no"
 
 # Valid options are [ none, novnc, spice ]
@@ -631,7 +635,7 @@ workaround_ansible_issue_8743: yes
 #############################
 # Horizon - Dashboard Options
 #############################
-#horizon_backend_database: false
+#horizon_backend_database: "{{ enable_murano | bool }}"
 
 #############################
 # Ironic options
@@ -759,6 +763,7 @@ workaround_ansible_issue_8743: yes
 #enable_prometheus_blackbox_exporter: "{{ enable_prometheus | bool }}"
 #enable_prometheus_libvirt_exporter: "{{ enable_prometheus | bool and enable_nova | bool and nova_compute_virt_type in ['kvm', 'qemu'] }}"
 #enable_prometheus_etcd_integration: "{{ enable_prometheus | bool and enable_etcd | bool }}"
+#enable_prometheus_msteams: "no"
 
 # The labels to add to any time series or alerts when communicating with external systems (federation, remote storage, Alertmanager).
 # prometheus_external_labels:
@@ -776,6 +781,7 @@ workaround_ansible_issue_8743: yes
 # Extra parameters passed to Prometheus exporters.
 #prometheus_blackbox_exporter_cmdline_extras:
 #prometheus_elasticsearch_exporter_cmdline_extras:
+#prometheus_haproxy_exporter_cmdline_extras:
 #prometheus_memcached_exporter_cmdline_extras:
 #prometheus_mysqld_exporter_cmdline_extras:
 #prometheus_node_exporter_cmdline_extras:
@@ -786,6 +792,15 @@ workaround_ansible_issue_8743: yes
 #prometheus_ceph_mgr_exporter_endpoints:
 #  - host1:port1
 #  - host2:port2
+
+#########
+# Freezer
+#########
+# Freezer can utilize two different database backends, elasticsearch or mariadb.
+# Elasticsearch is preferred, however it is not compatible with the version deployed
+# by kolla-ansible. You must first setup an external elasticsearch with 2.3.0.
+# By default, kolla-ansible deployed mariadb is the used database backend.
+#freezer_database_backend: "mariadb"
 
 ##########
 # Telegraf

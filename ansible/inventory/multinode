@@ -89,6 +89,9 @@ control
 [rabbitmq:children]
 control
 
+[outward-rabbitmq:children]
+control
+
 [keystone:children]
 control
 
@@ -112,6 +115,9 @@ control
 [cloudkitty:children]
 control
 
+[freezer:children]
+control
+
 [memcached:children]
 control
 
@@ -127,10 +133,19 @@ control
 [heat:children]
 control
 
+[murano:children]
+control
+
+[solum:children]
+control
+
 [ironic:children]
 control
 
 [magnum:children]
+control
+
+[sahara:children]
 control
 
 [mistral:children]
@@ -158,6 +173,12 @@ control
 [trove:children]
 control
 
+[senlin:children]
+control
+
+[vitrage:children]
+control
+
 [watcher:children]
 control
 
@@ -177,9 +198,6 @@ deployment
 control
 
 [skyline:children]
-control
-
-[dingoops:children]
 control
 
 [redis:children]
@@ -230,9 +248,6 @@ glance
 nova
 
 [nova-conductor:children]
-nova
-
-[nova-metadata:children]
 nova
 
 [nova-super-conductor:children]
@@ -306,6 +321,13 @@ cloudkitty
 [cloudkitty-processor:children]
 cloudkitty
 
+# Freezer
+[freezer-api:children]
+freezer
+
+[freezer-scheduler:children]
+freezer
+
 # iSCSI
 [iscsid:children]
 compute
@@ -361,6 +383,13 @@ heat
 [heat-engine:children]
 heat
 
+# Murano
+[murano-api:children]
+murano
+
+[murano-engine:children]
+murano
+
 # Ironic
 [ironic-api:children]
 ironic
@@ -383,6 +412,32 @@ magnum
 
 [magnum-conductor:children]
 magnum
+
+# Sahara
+[sahara-api:children]
+sahara
+
+[sahara-engine:children]
+sahara
+
+# Solum
+[solum-api:children]
+solum
+
+[solum-worker:children]
+solum
+
+[solum-deployer:children]
+solum
+
+[solum-conductor:children]
+solum
+
+[solum-application-deployment:children]
+solum
+
+[solum-image-builder:children]
+solum
 
 # Mistral
 [mistral-api:children]
@@ -468,6 +523,19 @@ watcher
 [watcher-applier:children]
 watcher
 
+# Senlin
+[senlin-api:children]
+senlin
+
+[senlin-conductor:children]
+senlin
+
+[senlin-engine:children]
+senlin
+
+[senlin-health-manager:children]
+senlin
+
 # Octavia
 [octavia-api:children]
 octavia
@@ -537,6 +605,22 @@ tacker
 [tacker-conductor:children]
 tacker
 
+# Vitrage
+[vitrage-api:children]
+vitrage
+
+[vitrage-notifier:children]
+vitrage
+
+[vitrage-graph:children]
+vitrage
+
+[vitrage-ml:children]
+vitrage
+
+[vitrage-persistor:children]
+vitrage
+
 # Blazar
 [blazar-api:children]
 blazar
@@ -554,6 +638,9 @@ storage
 
 [prometheus-mysqld-exporter:children]
 mariadb
+
+[prometheus-haproxy-exporter:children]
+loadbalancer
 
 [prometheus-memcached-exporter:children]
 memcached
@@ -579,6 +666,9 @@ monitoring
 
 [prometheus-libvirt-exporter:children]
 compute
+
+[prometheus-msteams:children]
+prometheus-alertmanager
 
 [masakari-api:children]
 control
