@@ -75,6 +75,7 @@
         - enable_vitrage_{{ enable_vitrage | bool }}
         - enable_watcher_{{ enable_watcher | bool }}
         - enable_zun_{{ enable_zun | bool }}
+        - enable_dingoops_{{ enable_dingoops | bool }}
   tags: always
 
 - name: Apply role prechecks
@@ -342,6 +343,11 @@
             tasks_from: loadbalancer
           tags: zun
           when: enable_zun | bool
+        - include_role:
+            name: dingoops
+            tasks_from: loadbalancer
+          tags: dingoops
+          when: enable_dingoops | bool
       when:
         - enable_haproxy | bool
         - kolla_action in ['deploy', 'reconfigure', 'upgrade', 'config']
@@ -981,3 +987,13 @@
   roles:
     - { role: skyline,
         tags: skyline }
+
+- name: Apply role dingoops
+  gather_facts: false
+  hosts:
+    - dingoops
+    - '&enable_skyline_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  roles:
+    - { role: dingoops,
+        tags: dingoops }

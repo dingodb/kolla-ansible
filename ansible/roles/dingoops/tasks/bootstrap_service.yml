@@ -1,0 +1,20 @@
+---
+- name: Running dingoops bootstrap container
+  vars:
+    dingoops: "{{ dingoops_services['dingoops'] }}"
+  become: true
+  kolla_container:
+    action: "start_container"
+    common_options: "{{ docker_common_options }}"
+    detach: False
+    environment:
+      KOLLA_BOOTSTRAP:
+      KOLLA_CONFIG_STRATEGY: "{{ config_strategy }}"
+    image: "{{ dingoops.image }}"
+    labels:
+      BOOTSTRAP:
+    name: "dingoops"
+    restart_policy: oneshot
+    volumes: "{{ dingoops.volumes | reject('equalto', '') | list }}"
+  run_once: True
+  delegate_to: "{{ groups[dingoops.group][0] }}"
