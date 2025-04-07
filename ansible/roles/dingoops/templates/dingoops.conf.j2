@@ -1,9 +1,23 @@
+[DEFAULT]
+region_name = RegionOne
+center_region_flag = True
+my_ip = {{ api_interface_address }}
+vip = {{ kolla_internal_fqdn }}
+transport_url = {{ rpc_transport_url }}
+center_transport_url = {{ rpc_transport_url }}
+
 [database]
 connection = mysql+pymysql://{{ dingoops_database_user }}:{{ dingoops_database_password }}@{{ dingoops_database_address }}/dingoops?charset=utf8mb3
+
 
 [bigscreen]
 prometheus_query_url = http://172.20.53.200:80/api/v1/
 metrics_fetch_interval = 1800
 metrics_expiration_time = 3600
-memcached_address = {{ kolla_internal_fqdn }}:11211
+memcached_address = {{ api_interface_address }}:11211
 memcached_key_prefix = bigscreen_metrics_
+
+[redis]
+redis_ip = {{ api_interface_address }}
+redis_port = 6379
+redis_password = {{ redis_master_password }}
