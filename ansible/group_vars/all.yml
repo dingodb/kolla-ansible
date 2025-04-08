@@ -638,7 +638,7 @@ skyline_console_public_port: "{{ haproxy_single_external_frontend_public_port if
 
 dingoops_external_fqdn: "{{ kolla_external_fqdn }}"
 dingoops_internal_fqdn: "{{ kolla_internal_fqdn }}"
-dingoops_port: "8889"
+dingoops_port: "8887"
 
 solum_application_deployment_internal_fqdn: "{{ kolla_internal_fqdn }}"
 solum_application_deployment_external_fqdn: "{{ kolla_external_fqdn }}"
