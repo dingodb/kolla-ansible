@@ -58,8 +58,8 @@ dingoops_healthcheck:
   timeout: "{{ dingoops_healthcheck_timeout }}"
 
 openstack_dingoops_auth: "{{ openstack_auth }}"
-dingoops_port: 8889
-dingoops_public_port: 8889
+dingoops_port: 8887
+dingoops_public_port: 8887
 dingoops_listen_port: "{{ dingoops_port }}"
 ####################
 # OpenStack

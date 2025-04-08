@@ -15,7 +15,7 @@
 import multiprocessing
 import os
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
-bind = "0.0.0.0:8889"
+bind = "0.0.0.0:8887"
 workers = 4
 worker_class = "uvicorn.workers.UvicornWorker"
 timeout = 300
