@@ -9,6 +9,11 @@ events {
 }
 
 http {
+    # 动态识别 WebSocket 请求（根据 Upgrade 头）
+    map $http_upgrade $connection_upgrade {
+        default "keep-alive";  # 默认保持 HTTP 长连接
+        websocket "upgrade";   # 检测到 WebSocket 时升级协议
+    }
 
     ##
     # Basic Settings
@@ -253,13 +258,24 @@ http {
         {% endif %}
         {% if enable_dingoops | bool %}# Region: {{ openstack_region_name }}, Service: dingoops
         location {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/dingoops/v1 {
-            proxy_pass {{ internal_protocol }}://{{ kolla_internal_fqdn | put_address_in_context('url') }}:{{ dingoops_port }}/;
+            proxy_pass {{ internal_protocol }}://{{ kolla_internal_fqdn | put_address_in_context('url') }}:{{ dingoops_port }}/v1;
             proxy_redirect {{ internal_protocol }}://{{ kolla_internal_fqdn | put_address_in_context('url') }}:{{ dingoops_port }}/ {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/dingoops/v1;
             proxy_buffering off;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_set_header X-Forwarded-Host $host;
             proxy_set_header Host $http_host;
+        }
+        # 处理 WebSocket 请求
+        location /ws_dingoops/regionone/v1 {
+            proxy_pass {{ internal_protocol }}://{{ kolla_internal_fqdn | put_address_in_context('url') }}:{{ dingoops_port }}/v1;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;  # 传递协议升级头
+            proxy_set_header Connection $connection_upgrade;  # 动态升级连接
+
+            # 维持长连接关键参数
+            proxy_read_timeout 86400s;  # 超时时间设为 24 小时
+            proxy_send_timeout 86400s;
         }
         {% endif %}
 
