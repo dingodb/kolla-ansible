@@ -45,7 +45,7 @@ logconfig_dict = {
         "error_file": {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "generic",
-            "filename": "/var/log/dingoops/skdingoopsyline-error.log",
+            "filename": "/var/log/dingoops/dinggops-error.log",
         },
         "access_file": {
             "class": "logging.handlers.RotatingFileHandler",
