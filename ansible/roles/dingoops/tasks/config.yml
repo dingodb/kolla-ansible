@@ -30,6 +30,19 @@
   vars:
     dingoops: "{{ dingoops_services['dingoops'] }}"
   template:
+    src: "{{ role_path }}/templates/supervisord.conf"
+    dest: "{{ node_config_directory }}/dingoops/supervisord.conf"
+    mode: "0660"
+  become: true
+  when:
+    - dingoops.enabled | bool
+  notify:
+    - Restart dingoops container
+
+- name: Copying over gunicorn.py
+  vars:
+    dingoops: "{{ dingoops_services['dingoops'] }}"
+  template:
     src: "{{ role_path }}/templates/gunicorn.py"
     dest: "{{ node_config_directory }}/dingoops/gunicorn.py"
     mode: "0660"
