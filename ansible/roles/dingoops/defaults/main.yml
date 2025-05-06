@@ -39,7 +39,7 @@ dingoops_default_volumes:
   - "{{ node_config_directory }}/dingoops/:{{ dingoops_config_directory }}/:ro"
   - "/etc/localtime:/etc/localtime:ro"
   - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
-  - "/var/log/dingoops/:/var/log/kolla/"
+  - "/var/log/kolla/:/var/log/dingoops/"
 
 dingoops_extra_volumes: "{{ default_extra_volumes }}"
 dingoops_dimensions: "{{ default_container_dimensions }}"
