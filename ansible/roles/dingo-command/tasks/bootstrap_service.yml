@@ -1,7 +1,7 @@
 ---
 - name: Running dingo-command bootstrap container
   vars:
-    dingo-command: "{{ dingo-command_services['dingo-command'] }}"
+    dingo-command: "{{ dingo_command_services['dingo-command'] }}"
   become: true
   kolla_container:
     action: "start_container"
