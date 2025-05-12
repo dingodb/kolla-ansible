@@ -1,0 +1,53 @@
+---
+- name: Ensuring config directories exist
+  file:
+    path: "{{ node_config_directory }}/{{ item.key }}"
+    state: "directory"
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "0770"
+  become: true
+  with_dict: "{{ dingo-command_services | select_services_enabled_and_mapped_to_host }}"
+
+- include_tasks: copy-certs.yml
+  when:
+    - kolla_copy_ca_into_containers | bool or dingo-command_enable_tls_backend | bool
+
+- name: Copying over dingo-command.conf
+  vars:
+    dingo-command: "{{ dingo-command_services['dingo-command'] }}"
+  template:
+    src: "{{ role_path }}/templates/dingo-command.conf.j2"
+    dest: "{{ node_config_directory }}/dingo-command/dingo-command.conf"
+    mode: "0660"
+  become: true
+  when:
+    - dingo-command.enabled | bool
+  notify:
+    - Restart dingo-command container
+
+- name: Copying over gunicorn.py
+  vars:
+    dingo-command: "{{ dingo-command_services['dingo-command'] }}"
+  template:
+    src: "{{ role_path }}/templates/supervisord.conf"
+    dest: "{{ node_config_directory }}/dingo-command/supervisord.conf"
+    mode: "0660"
+  become: true
+  when:
+    - dingo-command.enabled | bool
+  notify:
+    - Restart dingo-command container
+
+- name: Copying over gunicorn.py
+  vars:
+    dingo-command: "{{ dingo-command_services['dingo-command'] }}"
+  template:
+    src: "{{ role_path }}/templates/gunicorn.py"
+    dest: "{{ node_config_directory }}/dingo-command/gunicorn.py"
+    mode: "0660"
+  become: true
+  when:
+    - dingo-command.enabled | bool
+  notify:
+    - Restart dingo-command container

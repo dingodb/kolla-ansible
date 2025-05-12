@@ -71,7 +71,7 @@
         - enable_venus_{{ enable_venus | bool }}
         - enable_watcher_{{ enable_watcher | bool }}
         - enable_zun_{{ enable_zun | bool }}
-        - enable_dingoops_{{ enable_dingoops | bool }}
+        - enable_dingo-command_{{ enable_dingo-command | bool }}
   tags: always
 
 - name: Apply role prechecks
@@ -323,10 +323,10 @@
             tasks_from: check-containers
           when: kolla_action != 'config'
         - include_role:
-            name: dingoops
+            name: dingo-command
             tasks_from: loadbalancer
-          tags: dingoops
-          when: enable_dingoops | bool
+          tags: dingo-command
+          when: enable_dingo-command | bool
       when:
         - enable_haproxy | bool
         - kolla_action in ['deploy', 'reconfigure', 'upgrade', 'config']
@@ -1058,12 +1058,12 @@
     - { role: skyline,
         tags: skyline }
 
-- name: Apply role dingoops
+- name: Apply role dingo-command
   gather_facts: false
   hosts:
-    - dingoops
+    - dingo-command
     - '&enable_skyline_True'
   serial: '{{ kolla_serial|default("0") }}'
   roles:
-    - { role: dingoops,
-        tags: dingoops }
+    - { role: dingo-command,
+        tags: dingo-command }

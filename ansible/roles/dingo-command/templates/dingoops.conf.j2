@@ -1,14 +1,14 @@
 [DEFAULT]
 region_name = RegionOne
 center_region_flag = True
-cluster_work_dir = /var/lib/dingoops
+cluster_work_dir = /var/lib/dingo-command
 my_ip = {{ api_interface_address }}
 vip = {{ kolla_internal_fqdn }}
 transport_url = {{ rpc_transport_url }}
 center_transport_url = {{ rpc_transport_url }}
 
 [database]
-connection = mysql+pymysql://{{ dingoops_database_user }}:{{ dingoops_database_password }}@{{ dingoops_database_address }}/dingoops?charset=utf8mb3
+connection = mysql+pymysql://{{ dingo-command_database_user }}:{{ dingo-command_database_password }}@{{ dingo-command_database_address }}/dingo-command?charset=utf8mb3
 
 
 [bigscreen]

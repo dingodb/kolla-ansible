@@ -1,0 +1,110 @@
+---
+dingo-command_services:
+  dingo-command:
+    container_name: dingo-command
+    group: dingo-command
+    enabled: true
+    image: "{{ dingo-command_image_full }}"
+    volumes: "{{ dingo-command_default_volumes + dingo-command_extra_volumes }}"
+    dimensions: "{{ dingo-command_dimensions }}"
+    healthcheck: "{{ dingo-command_healthcheck }}"
+    haproxy:
+      dingo-command:
+        enabled: "{{ enable_dingo-command }}"
+        mode: "http"
+        external: false
+        port: "{{ dingo-command_port }}"
+        listen_port: "{{ dingo-command_listen_port }}"
+        tls_backend: "{{ dingo-command_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+      dingo-command_external:
+        enabled: "{{ enable_dingo-command }}"
+        mode: "http"
+        external: true
+        external_fqdn: "{{ dingo-command_external_fqdn }}"
+        port: "{{ dingo-command_port }}"
+        listen_port: "{{ dingo-command_listen_port }}"
+        tls_backend: "{{ dingo-command_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+
+dingo-command_database_address: "{{ database_address | put_address_in_context('url') }}:{{ database_port }}"
+dingo-command_tag: "{{ openstack_tag }}"
+
+dingo-command_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/dingo-command"
+dingo-command_image_full: "{{ dingo-command_image }}:{{ dingo-command_tag }}"
+dingo-command_config_directory: "/etc/dingo-command"
+dingo-command_default_volumes:
+  - "{{ node_config_directory }}/dingo-command/:{{ dingo-command_config_directory }}/:ro"
+  - "/etc/localtime:/etc/localtime:ro"
+  - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
+  - "/var/log/kolla/dingo-command/:/var/log/dingo-command/"
+
+dingo-command_extra_volumes: "{{ default_extra_volumes }}"
+dingo-command_dimensions: "{{ default_container_dimensions }}"
+
+dingo-command_enable_healthchecks: "{{ enable_container_healthchecks }}"
+dingo-command_healthcheck_interval: "{{ default_container_healthcheck_interval }}"
+dingo-command_healthcheck_retries: "{{ default_container_healthcheck_retries }}"
+dingo-command_healthcheck_start_period: "{{ default_container_healthcheck_start_period }}"
+dingo-command_healthcheck_test: ["CMD-SHELL", "curl --max-time 10 http://{{ api_interface_address | put_address_in_context('url') }}:{{ dingo-command_listen_port }}/docs"]
+dingo-command_healthcheck_timeout: "{{ default_container_healthcheck_timeout }}"
+dingo-command_healthcheck:
+  interval: "{{ dingo-command_healthcheck_interval }}"
+  retries: "{{ dingo-command_healthcheck_retries }}"
+  start_period: "{{ dingo-command_healthcheck_start_period }}"
+  test: "{% if dingo-command_enable_healthchecks | bool %}{{ dingo-command_healthcheck_test }}{% else %}NONE{% endif %}"
+  timeout: "{{ dingo-command_healthcheck_timeout }}"
+
+openstack_dingo-command_auth: "{{ openstack_auth }}"
+dingo-command_port: 8887
+dingo-command_public_port: 8887
+dingo-command_listen_port: "{{ dingo-command_port }}"
+####################
+# OpenStack
+####################
+dingo-command_internal_base_endpoint: "{{ dingo-command_internal_fqdn | kolla_url(internal_protocol, dingo-command_port) }}"
+dingo-command_public_base_endpoint: "{{ dingo-command_external_fqdn | kolla_url(public_protocol, dingo-command_public_port) }}"
+
+dingo-command_keystone_user: dingo-command
+dingo-command_keystone_password: Zetyun.123
+dingo-command_ks_services:
+  - name: "dingo-command"
+    type: "panel"
+    description: "OpenStack assets Service"
+    endpoints:
+      - {'interface': 'internal', 'url': '{{ dingo-command_internal_base_endpoint }}'}
+      - {'interface': 'public', 'url': '{{ dingo-command_public_base_endpoint }}'}
+
+dingo-command_ks_users:
+  - project: "service"
+    user: "{{ dingo-command_keystone_user }}"
+    password: "{{ dingo-command_keystone_password }}"
+    role: "admin"
+
+####################
+# Database
+####################
+dingo-command_database_name: "dingo-command"
+dingo-command_database_user: "{% if use_preconfigured_databases | bool and use_common_mariadb_user | bool %}{{ database_user }}{% else %}dingo-command{% endif %}"
+dingo-command_database_address: "{{ database_address | put_address_in_context('url') }}:{{ database_port }}"
+dingo-command_database_password: Zetyun.123
+####################
+# Database sharding
+####################
+dingo-command_database_shard_root_user: "{% if enable_proxysql | bool %}root_shard_{{ dingo-command_database_shard_id }}{% else %}{{ database_user }}{% endif %}"
+dingo-command_database_shard_id: "{{ mariadb_default_database_shard_id | int }}"
+dingo-command_database_shard:
+  users:
+    - user: "{{ dingo-command_database_user }}"
+      password: "{{ dingo-command_database_password }}"
+  rules:
+    - schema: "{{ dingo-command_database_name }}"
+      shard_id: "{{ dingo-command_database_shard_id }}"
+
+
+####################
+# TLS
+####################
+dingo-command_enable_tls_backend: "{{ kolla_enable_tls_backend }}"
