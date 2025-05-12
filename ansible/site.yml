@@ -71,7 +71,7 @@
         - enable_venus_{{ enable_venus | bool }}
         - enable_watcher_{{ enable_watcher | bool }}
         - enable_zun_{{ enable_zun | bool }}
-        - enable_dingo-command_{{ enable_dingo-command | bool }}
+        - enable_dingo_command_{{ enable_dingo_command | bool }}
   tags: always
 
 - name: Apply role prechecks
@@ -326,7 +326,7 @@
             name: dingo-command
             tasks_from: loadbalancer
           tags: dingo-command
-          when: enable_dingo-command | bool
+          when: enable_dingo_command | bool
       when:
         - enable_haproxy | bool
         - kolla_action in ['deploy', 'reconfigure', 'upgrade', 'config']
