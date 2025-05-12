@@ -256,7 +256,7 @@ http {
             proxy_set_header Host $http_host;
         }
         {% endif %}
-        {% if enable_dingo-command | bool %}# Region: {{ openstack_region_name }}, Service: dingo-command
+        {% if enable_dingo_command | bool %}# Region: {{ openstack_region_name }}, Service: dingo-command
         location {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/dingo-command/v1 {
             proxy_pass {{ internal_protocol }}://{{ kolla_internal_fqdn | put_address_in_context('url') }}:{{ dingo-command_port }}/v1;
             proxy_redirect {{ internal_protocol }}://{{ kolla_internal_fqdn | put_address_in_context('url') }}:{{ dingo-command_port }}/ {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/dingo-command/v1;

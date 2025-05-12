@@ -10,7 +10,7 @@ dingo-command_services:
     healthcheck: "{{ dingo-command_healthcheck }}"
     haproxy:
       dingo-command:
-        enabled: "{{ enable_dingo-command }}"
+        enabled: "{{ enable_dingo_command }}"
         mode: "http"
         external: false
         port: "{{ dingo-command_port }}"
@@ -19,7 +19,7 @@ dingo-command_services:
         backend_http_extra:
           - "option httpchk GET /docs"
       dingo-command_external:
-        enabled: "{{ enable_dingo-command }}"
+        enabled: "{{ enable_dingo_command }}"
         mode: "http"
         external: true
         external_fqdn: "{{ dingo-command_external_fqdn }}"
