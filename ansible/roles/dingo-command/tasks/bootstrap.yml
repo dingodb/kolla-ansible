@@ -7,9 +7,9 @@
     module_args:
       login_host: "{{ database_address }}"
       login_port: "{{ database_port }}"
-      login_user: "{{ dingo-command_database_shard_root_user }}"
+      login_user: "{{ dingo_command_database_shard_root_user }}"
       login_password: "{{ database_password }}"
-      name: "{{ dingo-command_database_name }}"
+      name: "{{ dingo_command_database_name }}"
   run_once: True
   delegate_to: "{{ groups['dingo-command'][0] }}"
   when:
@@ -23,12 +23,12 @@
     module_args:
       login_host: "{{ database_address }}"
       login_port: "{{ database_port }}"
-      login_user: "{{ dingo-command_database_shard_root_user }}"
+      login_user: "{{ dingo_command_database_shard_root_user }}"
       login_password: "{{ database_password }}"
-      name: "{{ dingo-command_database_user }}"
-      password: "{{ dingo-command_database_password }}"
+      name: "{{ dingo_command_database_user }}"
+      password: "{{ dingo_command_database_password }}"
       host: "%"
-      priv: "{{ dingo-command_database_name }}.*:ALL"
+      priv: "{{ dingo_command_database_name }}.*:ALL"
       append_privs: "yes"
   run_once: True
   delegate_to: "{{ groups['dingo-command'][0] }}"
