@@ -11,7 +11,7 @@
 
 - include_tasks: copy-certs.yml
   when:
-    - kolla_copy_ca_into_containers | bool or dingo-command_enable_tls_backend | bool
+    - kolla_copy_ca_into_containers | bool or dingo_command_enable_tls_backend | bool
 
 - name: Copying over dingo-command.conf
   vars:
