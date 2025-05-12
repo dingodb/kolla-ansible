@@ -1,5 +1,5 @@
 ---
-- name: Check dingoops container
+- name: Check dingo-command container
   become: true
   kolla_container:
     action: "compare_container"
@@ -12,6 +12,6 @@
   when:
     - inventory_hostname in groups[item.value.group]
     - item.value.enabled | bool
-  with_dict: "{{ dingoops_services }}"
+  with_dict: "{{ dingo-command_services }}"
   notify:
     - "Restart {{ item.key }} container"

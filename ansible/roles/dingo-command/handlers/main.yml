@@ -1,8 +1,8 @@
 ---
-- name: Restart dingoops container
+- name: Restart dingo-command container
   vars:
-    service_name: "dingoops"
-    service: "{{ dingoops_services[service_name] }}"
+    service_name: "dingo-command"
+    service: "{{ dingo-command_services[service_name] }}"
   become: true
   kolla_container:
     action: "recreate_or_restart_container"

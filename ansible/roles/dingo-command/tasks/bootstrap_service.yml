@@ -1,7 +1,7 @@
 ---
-- name: Running dingoops bootstrap container
+- name: Running dingo-command bootstrap container
   vars:
-    dingoops: "{{ dingoops_services['dingoops'] }}"
+    dingo-command: "{{ dingo-command_services['dingo-command'] }}"
   become: true
   kolla_container:
     action: "start_container"
@@ -10,11 +10,11 @@
     environment:
       KOLLA_BOOTSTRAP:
       KOLLA_CONFIG_STRATEGY: "{{ config_strategy }}"
-    image: "{{ dingoops.image }}"
+    image: "{{ dingo-command.image }}"
     labels:
       BOOTSTRAP:
-    name: "dingoops"
+    name: "dingo-command"
     restart_policy: oneshot
-    volumes: "{{ dingoops.volumes | reject('equalto', '') | list }}"
+    volumes: "{{ dingo-command.volumes | reject('equalto', '') | list }}"
   run_once: True
-  delegate_to: "{{ groups[dingoops.group][0] }}"
+  delegate_to: "{{ groups[dingo-command.group][0] }}"
