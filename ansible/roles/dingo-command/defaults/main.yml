@@ -1,5 +1,5 @@
 ---
-dingo-command_services:
+dingo_command_services:
   dingo-command:
     container_name: dingo-command
     group: dingo-command

@@ -3,4 +3,4 @@
   import_role:
     role: service-cert-copy
   vars:
-    project_services: "{{ dingo-command_services }}"
+    project_services: "{{ dingo_command_services }}"
