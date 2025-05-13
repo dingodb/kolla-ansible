@@ -26,7 +26,7 @@
   notify:
     - Restart dingo-command container
 
-- name: Copying over gunicorn.py
+- name: Copying over supervisord.conf
   vars:
     dingo_command: "{{ dingo_command_services['dingo-command'] }}"
   template:
@@ -45,6 +45,19 @@
   template:
     src: "{{ role_path }}/templates/gunicorn.py"
     dest: "{{ node_config_directory }}/dingo-command/gunicorn.py"
+    mode: "0660"
+  become: true
+  when:
+    - dingo_command.enabled | bool
+  notify:
+    - Restart dingo-command container
+
+- name: Copying over .terraformrc
+  vars:
+    dingo_command: "{{ dingo_command_services['dingo-command'] }}"
+  template:
+    src: "{{ role_path }}/templates/.terraformrc"
+    dest: "/root/.terraformrc"
     mode: "0660"
   become: true
   when:
