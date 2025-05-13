@@ -39,7 +39,7 @@ dingo_command_default_volumes:
   - "{{ node_config_directory }}/dingo-command/:{{ dingo_command_config_directory }}/:ro"
   - "/etc/localtime:/etc/localtime:ro"
   - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
-  - "/var/log/kolla/dingo-command/:/var/log/dingo-command/"
+  - "/var/log/kolla/:/var/log/dingo-command/"
 
 dingo_command_extra_volumes: "{{ default_extra_volumes }}"
 dingo_command_dimensions: "{{ default_container_dimensions }}"
@@ -86,8 +86,8 @@ dingo_command_ks_users:
 ####################
 # Database
 ####################
-dingo_command_database_name: "dingo-command"
-dingo_command_database_user: "{% if use_preconfigured_databases | bool and use_common_mariadb_user | bool %}{{ database_user }}{% else %}dingo-command{% endif %}"
+dingo_command_database_name: "dingoops"
+dingo_command_database_user: "{% if use_preconfigured_databases | bool and use_common_mariadb_user | bool %}{{ database_user }}{% else %}dingoops{% endif %}"
 dingo_command_database_address: "{{ database_address | put_address_in_context('url') }}:{{ database_port }}"
 dingo_command_database_password: Zetyun.123
 ####################
