@@ -15,39 +15,39 @@
 
 - name: Copying over dingo-command.conf
   vars:
-    dingo-command: "{{ dingo_command_services['dingo-command'] }}"
+    dingo_command: "{{ dingo_command_services['dingo-command'] }}"
   template:
     src: "{{ role_path }}/templates/dingo-command.conf.j2"
     dest: "{{ node_config_directory }}/dingo-command/dingo-command.conf"
     mode: "0660"
   become: true
   when:
-    - dingo-command.enabled | bool
+    - dingo_command.enabled | bool
   notify:
     - Restart dingo-command container
 
 - name: Copying over gunicorn.py
   vars:
-    dingo-command: "{{ dingo_command_services['dingo-command'] }}"
+    dingo_command: "{{ dingo_command_services['dingo-command'] }}"
   template:
     src: "{{ role_path }}/templates/supervisord.conf"
     dest: "{{ node_config_directory }}/dingo-command/supervisord.conf"
     mode: "0660"
   become: true
   when:
-    - dingo-command.enabled | bool
+    - dingo_command.enabled | bool
   notify:
     - Restart dingo-command container
 
 - name: Copying over gunicorn.py
   vars:
-    dingo-command: "{{ dingo_command_services['dingo-command'] }}"
+    dingo_command: "{{ dingo_command_services['dingo-command'] }}"
   template:
     src: "{{ role_path }}/templates/gunicorn.py"
     dest: "{{ node_config_directory }}/dingo-command/gunicorn.py"
     mode: "0660"
   become: true
   when:
-    - dingo-command.enabled | bool
+    - dingo_command.enabled | bool
   notify:
     - Restart dingo-command container
