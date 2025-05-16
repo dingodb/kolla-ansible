@@ -12,7 +12,7 @@ connection = mysql+pymysql://{{ dingo_command_database_user }}:{{ dingo_command_
 
 
 [bigscreen]
-prometheus_query_url = http://172.20.53.200:80/api/v1/
+prometheus_query_url = {{ bigscreen_prometheus_query_url }}
 metrics_fetch_interval = 1800
 metrics_expiration_time = 3600
 memcached_address = {{ api_interface_address }}:11211
@@ -56,3 +56,11 @@ password = {{ neutron_keystone_password }}
 region_name = {{ openstack_region_name }}
 valid_interfaces = internal
 cafile = {{ openstack_cacert }}
+
+[aliyun_dingodb]
+host = {{ aliyun_dingodb_host }}
+port = {{ aliyun_dingodb_port }}
+user = {{ aliyun_dingodb_user }}
+password = {{ aliyun_dingodb_password }}
+report_database =  {{ aliyun_dingodb_report_database }}
+
