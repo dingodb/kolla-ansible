@@ -36,6 +36,13 @@ workaround_ansible_issue_8743: yes
 # By default, this list includes all hosts.
 #kolla_ansible_delegate_facts_hosts: "{{ groups['all'] }}"
 
+bigscreen_prometheus_query_url: "http://172.20.53.200:80/api/v1/"
+aliyun_dingodb_host: "183.166.183.48"
+aliyun_dingodb_port: 9921
+aliyun_dingodb_user: "bsm_monitor"
+aliyun_dingodb_password: "bsm_monitor"
+aliyun_dingodb_report_database: "bsm"
+
 ###############
 # Kolla options
 ###############
