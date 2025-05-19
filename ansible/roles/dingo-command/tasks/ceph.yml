@@ -1,68 +1,71 @@
 ---
-- name: config ceph
-  hosts: all
-  become: true
-  tasks:
-    - name: 创建Ceph仓库配置文件
-      copy:
-        dest: /etc/yum.repos.d/ceph.repo
-        content: |
-          [Ceph]
-          name=Ceph packages for $basearch
-          baseurl=http://download.ceph.com/rpm-squid/el9/$basearch
-          enabled=1
-          gpgcheck=1
-          type=rpm-md
-          gpgkey=https://download.ceph.com/keys/release.asc
 
-          [Ceph-noarch]
-          name=Ceph noarch packages
-          baseurl=http://download.ceph.com/rpm-squid/el9/noarch
-          enabled=1
-          gpgcheck=1
-          type=rpm-md
-          gpgkey=https://download.ceph.com/keys/release.asc
+- name: 创建Ceph仓库配置文件
+  copy:
+    dest: /etc/yum.repos.d/ceph.repo
+    content: |
+      [Ceph]
+      name=Ceph packages for $basearch
+      baseurl=http://download.ceph.com/rpm-squid/el9/$basearch
+      enabled=1
+      gpgcheck=1
+      type=rpm-md
+      gpgkey=https://download.ceph.com/keys/release.asc
 
-          [ceph-source]
-          name=Ceph source packages
-          baseurl=http://download.ceph.com/rpm-squid/el9/SRPMS
-          enabled=1
-          gpgcheck=1
-          type=rpm-md
-          gpgkey=https://download.ceph.com/keys/release.asc
+      [Ceph-noarch]
+      name=Ceph noarch packages
+      baseurl=http://download.ceph.com/rpm-squid/el9/noarch
+      enabled=1
+      gpgcheck=1
+      type=rpm-md
+      gpgkey=https://download.ceph.com/keys/release.asc
 
-    - name: 安装Ceph客户端工具
-      package:
-        name: ceph-common
-        state: present
+      [ceph-source]
+      name=Ceph source packages
+      baseurl=http://download.ceph.com/rpm-squid/el9/SRPMS
+      enabled=1
+      gpgcheck=1
+      type=rpm-md
+      gpgkey=https://download.ceph.com/keys/release.asc
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
-    - name: 确保Ceph配置目录存在
-      file:
-        path: /etc/ceph
-        state: directory
-        mode: '0755'
+- name: 安装Ceph客户端工具
+  package:
+    name: ceph-common
+    state: present
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
-    - name: 复制Ceph配置文件
-      copy:
-        dest: /etc/ceph/ceph.conf
-        content: |
-          [global]
-          fsid = {{ dingo_command_ceph_fsid }}
-          mon_host = {{ dingo_command_ceph_mon_hosts | join(' ') }}
-          [mon.{{ dingo_command_ceph_mon_name }}]
-          public network = {{ dingo_command_ceph_public_network }}
+- name: 确保Ceph配置目录存在
+  file:
+    path: /etc/ceph
+    state: directory
+    mode: '0755'
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
-    - name: 复制Ceph密钥文件
-      copy:
-        dest: /etc/ceph/ceph.client.dingoops-hdd-fs.keyring
-        content: "{{ ceph_keyring_content }}"
-        mode: '0600'
+- name: 复制Ceph配置文件
+  copy:
+    dest: /etc/ceph/ceph.conf
+    content: |
+      [global]
+      fsid = {{ dingo_command_ceph_fsid }}
+      mon_host = {{ dingo_command_ceph_mon_hosts | join(' ') }}
+      [mon.{{ dingo_command_ceph_mon_name }}]
+      public network = {{ dingo_command_ceph_public_network }}
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
+
+- name: 复制Ceph密钥文件
+  copy:
+    dest: /etc/ceph/ceph.client.dingoops-hdd-fs.keyring
+    content: "{{ ceph_keyring_content }}"
+    mode: '0600'
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
 - name: 确保挂载点目录存在
   file:
     path: "{{ dingo_command_ceph_mount_path }}"
     state: directory
     mode: '0755'
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
 - name: 挂载Ceph文件系统
   mount:
@@ -71,3 +74,4 @@
     fstype: ceph
     opts: "name={{ dingo_command_ceph_client_name }},secretfile=/etc/ceph/ceph.client.{{ dingo_command_ceph_client_name }}.keyring,acl,noatime,_netdev,mds_namespace={{ dingo_command_ceph_mds_namespace }}"
     state: mounted
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
