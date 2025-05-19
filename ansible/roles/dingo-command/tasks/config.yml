@@ -1,4 +1,5 @@
 ---
+
 - name: Ensuring /var/lib/dingo-command directory exists
   file:
     path: "/var/lib/dingo-command"
@@ -72,5 +73,45 @@
   become: true
   when:
     - dingo_command.enabled | bool
+  notify:
+    - Restart dingo-command container
+
+- include_tasks: "ceph.yml"
+
+- name: Ensuring terraform-cache directory exists
+  file:
+    path: "/var/lib/dingo-command/terraform-cache"
+    state: "directory"
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "0770"
+  become: true
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
+
+- name: Copy dingo.com terraform providers
+  copy:
+    src: "{{ role_path }}/templates/dingo.com"
+    dest: "/var/lib/dingo-command/terraform-cache/"
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "0770"
+    directory_mode: "0770"
+  become: true
+  when:
+    - dingo_command_services['dingo-command'].enabled | bool
+  notify:
+    - Restart dingo-command container
+
+- name: Copy registry.terraform.io terraform providers
+  copy:
+    src: "{{ role_path }}/templates/registry.terraform.io"
+    dest: "/var/lib/dingo-command/terraform-cache/"
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "0770"
+    directory_mode: "0770"
+  become: true
+  when:
+    - dingo_command_services['dingo-command'].enabled | bool
   notify:
     - Restart dingo-command container
