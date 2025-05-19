@@ -1,5 +1,13 @@
 ---
-
+- name: Ensuring /var/log/dingo-command directory exists
+  file:
+    path: "/var/log/kolla/dingo-command"
+    state: "directory"
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "0770"
+  become: true
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 - name: Ensuring /var/lib/dingo-command directory exists
   file:
     path: "/var/lib/dingo-command"
