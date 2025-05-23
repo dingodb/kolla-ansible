@@ -6,6 +6,11 @@ my_ip = {{ api_interface_address }}
 vip = {{ kolla_internal_fqdn }}
 transport_url = {{ rpc_transport_url }}
 center_transport_url = {{ rpc_transport_url }}
+auth_url  = http://{{ kolla_internal_fqdn }}:5000
+harbor_url = {{ harbor_url }}
+fileserver_url = {{ fileserver_url }}
+k8s_master_image = {{ k8s_master_image }}
+k8s_master_flavor = {{ k8s_master_flavor }}
 
 [database]
 connection = mysql+pymysql://{{ dingo_command_database_user }}:{{ dingo_command_database_password }}@{{ dingo_command_database_address }}/dingoops?charset=utf8mb3
@@ -22,6 +27,8 @@ memcached_key_prefix = bigscreen_metrics_
 redis_ip = {{ api_interface_address }}
 redis_port = 6379
 redis_password = {{ redis_master_password }}
+sentinel_url = "sentinel://{% for host in groups['redis'] %}{% if host == groups['redis'][0] %}:{{ redis_master_password }}@{{ 'api' | kolla_address(host) | put_address_in_context('url') }}:{{ redis_sentinel_port }}{% else %};sentinel://:{{ redis_master_password }}@{{ 'api' | kolla_address(host) | put_address_in_context('url') }}:{{ redis_sentinel_port }}{% endif %}{% endfor %}"
+
 
 [ironic]
 auth_url = http://{{ kolla_internal_fqdn }}:5000/
@@ -56,6 +63,16 @@ password = {{ neutron_keystone_password }}
 region_name = {{ openstack_region_name }}
 valid_interfaces = internal
 cafile = {{ openstack_cacert }}
+
+[cloudkitty]
+auth_url = http://{{ kolla_internal_fqdn }}:5000
+auth_type = password
+project_domain = {{ default_project_domain_name }}
+user_domain = {{ default_project_domain_name }}
+project_name = service
+username = {{ cloudkitty_keystone_user }}
+password = {{ cloudkitty_keystone_password }}
+region_name = {{ openstack_region_name }}
 
 [aliyun_dingodb]
 host = {{ aliyun_dingodb_host }}
