@@ -1086,6 +1086,16 @@
     - { role: skyline,
         tags: skyline }
 
+- name: Apply role skyline
+  gather_facts: false
+  hosts:
+    - skyline
+    - '&enable_skyline_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  roles:
+    - { role: skyline_console,
+        tags: skyline_console }
+
 - name: Apply role dingo-command
   gather_facts: false
   hosts:
