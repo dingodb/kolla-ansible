@@ -331,6 +331,34 @@
         - enable_haproxy | bool
         - kolla_action in ['deploy', 'reconfigure', 'upgrade', 'config']
 
+- name: Apply dingo-command loadbalancer
+  gather_facts: false
+  hosts:
+    - loadbalancer
+    - '&enable_loadbalancer_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  tags:
+    - haproxy
+    - keepalived
+    - loadbalancer
+  roles:
+    - { role: loadbalancer }
+  tasks:
+    - block:
+        - include_role:
+            name: dingo-command
+            tasks_from: loadbalancer
+          tags: dingo-command
+          when: enable_dingo_command | bool
+        - include_role:
+            name: skyline
+            tasks_from: loadbalancer
+          tags: skyline
+          when: enable_skyline | bool
+      when:
+        - enable_haproxy | bool
+        - kolla_action in ['deploy', 'reconfigure', 'config']
+
 - name: Apply role letsencrypt
   gather_facts: false
   hosts:
