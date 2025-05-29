@@ -338,11 +338,6 @@
             tasks_from: loadbalancer
           tags: zun
           when: enable_zun | bool
-        - include_role:
-            name: dingo-command
-            tasks_from: loadbalancer
-          tags: dingo-command
-          when: enable_dingo_command | bool
       when:
         - enable_haproxy | bool
         - kolla_action in ['deploy', 'reconfigure', 'upgrade', 'config']
