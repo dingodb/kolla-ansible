@@ -279,6 +279,19 @@ http {
         }
         {% endif %}
 
+        {% if enable_cloudkitty | bool %}# Region: {{ openstack_region_name }}, Service: cloudkitty
+        location {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/cloudkitty {
+            proxy_pass {{ internal_protocol }}://{{ cloudkitty_internal_fqdn | put_address_in_context('url') }}:{{ cloudkitty_api_port }}/;
+            proxy_redirect {{ internal_protocol }}://{{ cloudkitty_internal_fqdn | put_address_in_context('url') }}:{{ cloudkitty_api_port }}/ {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/cloudkitty/;
+            proxy_buffering off;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header Host $http_host;
+            proxy_set_header Accept application/json;
+        }
+        {% endif %}
+
     }
 
 }
