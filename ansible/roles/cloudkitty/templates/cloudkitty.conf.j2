@@ -117,7 +117,11 @@ coordination_url = mysql://{{ cloudkitty_database_user }}:{{ cloudkitty_database
 max_workers = {{ cloudkitty_processor_workers }}
 
 [storage]
+{% if cloudkitty_storage_backend == 'elasticsearch' %}
+backend = opensearch
+{% else %}
 backend = {{ cloudkitty_storage_backend }}
+{% endif %}
 {% if cloudkitty_storage_backend == 'sqlalchemy' %}
 version = 1
 {% else %}
@@ -149,7 +153,7 @@ cafile = {{ cloudkitty_influxdb_cafile }}
 {% endif %}
 
 {% if cloudkitty_storage_backend == 'elasticsearch' %}
-[storage_elasticsearch]
+[storage_opensearch]
 host = {{ cloudkitty_elasticsearch_url }}
 index_name = {{ cloudkitty_elasticsearch_index_name }}
 insecure = {{ cloudkitty_elasticsearch_insecure_connections }}
