@@ -17,6 +17,8 @@ my_ip = {{ api_interface_address }}
 {% if ironic_enabled_notification_topics %}
 notification_level = info
 {% endif %}
+enabled_network_interfaces = flat,noop,neutron
+enabled_console_interfaces = no-console,ipmitool-socat
 
 rbac_service_role_elevated_access = true
 
@@ -199,6 +201,8 @@ kernel_append_params = nofb nomodeset vga=normal console=tty0 console=ttyS0,{{ i
 tftp_root = /var/lib/ironic/tftpboot
 tftp_master_path = /var/lib/ironic/master_images
 tftp_server = {{ api_interface_address }}
+image_cache_size = 2048000
+image_cache_ttl = 10080
 
 [deploy]
 http_root = /var/lib/ironic/httpboot
