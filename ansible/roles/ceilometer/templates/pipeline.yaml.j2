@@ -5,6 +5,17 @@ sources:
           - "*"
       sinks:
           - meter_sink
+    - name: radosgw_source
+      interval: 60
+      meters:
+          - "rgw.objects"
+          - "rgw.objects.size"
+          - "rgw.objects.containers"
+          - "rgw.api.request"
+          - "rgw.containers.objects"
+          - "rgw.containers.objects.size"
+      sinks:
+          - meter_sink
 sinks:
     - name: meter_sink
       publishers:
