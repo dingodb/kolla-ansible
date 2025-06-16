@@ -23,6 +23,7 @@ property_protection_file = /etc/glance/property-protections-rules.conf
 {% endif %}
 
 transport_url = {{ rpc_transport_url }}
+image_size_cap = 3298534883328
 
 {% if enable_glance_image_cache | bool %}
 image_cache_max_size = {{ glance_cache_max_size }}
