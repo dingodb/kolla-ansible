@@ -66,7 +66,7 @@ openstack:
 {% if enable_neutron | bool %}
     network: neutron
 {% endif %}
-{% if enable_swift | bool %}
+{% if enable_swift | bool or enable_ceph_rgw | bool %}
     object-store: swift
 {% endif %}
 {% if enable_heat | bool %}
