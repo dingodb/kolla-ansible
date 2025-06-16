@@ -27,7 +27,7 @@ workaround_ansible_issue_8743: yes
 ##################
 #dingo-command options
 ##################
-bigscreen_prometheus_query_url: "http://172.20.53.200:80/api/v1/"
+bigscreen_prometheus_query_url: "http://prometheus.zetyun.cn:80/api/v1/"
 aliyun_dingodb_host: "183.166.183.48"
 aliyun_dingodb_port: 9921
 aliyun_dingodb_user: "bsm_monitor"
