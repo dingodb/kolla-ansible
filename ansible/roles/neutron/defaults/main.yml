@@ -629,6 +629,9 @@ neutron_ovn_agent_extra_volumes: "{{ neutron_extra_volumes }}"
 ####################
 dhcp_agents_per_network: 2
 max_l3_agents_per_router: 3
+# https://docs.openstack.org/neutron/2024.2/configuration/config-samples.html
+# Maximum number of allowed address pairs (integer value)
+max_allowed_address_pair: {{ max_allowed_address_pair }}
 
 # Adds a delay (in seconds) to the serial neutron_l3_agent container restart
 # process, allowing routers to fail over without loss of connectivity.

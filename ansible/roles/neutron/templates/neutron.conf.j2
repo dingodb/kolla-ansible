@@ -56,7 +56,7 @@ max_l3_agents_per_router = {{ max_l3_agents_per_router }}
 {% endif %}
 
 transport_url = {{ rpc_transport_url }}
-max_allowed_address_pair = 30
+max_allowed_address_pair = {{ max_allowed_address_pair }}
 {% if enable_neutron_dvr | bool %}
 router_distributed = True
 {% endif %}

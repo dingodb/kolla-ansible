@@ -25,7 +25,7 @@ property_protection_file = /etc/glance/property-protections-rules.conf
 cinder_catalog_info = volume:cinder:internalURL
 
 transport_url = {{ rpc_transport_url }}
-image_size_cap = 3298534883328
+image_size_cap = {{ image_size_cap }}
 
 {% if enable_glance_image_cache | bool %}
 image_cache_max_size = {{ glance_cache_max_size }}
