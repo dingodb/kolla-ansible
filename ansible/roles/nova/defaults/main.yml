@@ -223,6 +223,11 @@ nova_scheduler_workers: "{{ openstack_service_workers }}"
 
 nova_enable_nova_legacy_service: false
 
+# https://docs.openstack.org/nova/2024.2/configuration/sample-config.html
+resume_guests_state_on_host_boot: true
+block_device_allocate_retries: 600
+block_device_allocate_retries_interval: 6
+
 ####################
 # Keystone
 ####################
