@@ -14,9 +14,9 @@ log_dir = /var/log/kolla/nova
 
 state_path = /var/lib/nova
 allow_resize_to_same_host = true
-resume_guests_state_on_host_boot = true
-block_device_allocate_retries = 600
-block_device_allocate_retries_interval = 6
+resume_guests_state_on_host_boot = {{ resume_guests_state_on_host_boot }}
+block_device_allocate_retries = {{ block_device_allocate_retries }}
+block_device_allocate_retries_interval = {{ block_device_allocate_retries_interval }}
 # Though my_ip is not used directly, lots of other variables use $my_ip
 my_ip = {{ api_interface_address }}
 

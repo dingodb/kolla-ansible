@@ -259,6 +259,10 @@ openstack_glance_auth: "{{ openstack_auth }}"
 
 glance_api_workers: "{{ openstack_service_workers }}"
 
+# https://docs.openstack.org/glance/2024.2/configuration/sample-configuration.html
+# Maximum size of image a user can upload in bytes.
+image_size_cap : 3298534883328
+
 ###################
 # Kolla
 ###################
