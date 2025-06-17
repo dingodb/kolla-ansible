@@ -85,7 +85,7 @@ skyline_console_extra_volumes: "{{ skyline_extra_volumes }}"
 ####################
 skyline_logging_debug: "{{ openstack_logging_debug }}"
 skyline_apiserver_internal_base_endpoint: "{{ skyline_apiserver_internal_fqdn | kolla_url(internal_protocol, skyline_apiserver_port) }}"
-
+skyline_apiserver_public_base_endpoint: "{{ skyline_apiserver_external_fqdn | kolla_url(public_protocol, skyline_apiserver_public_port) }}"
 openstack_skyline_auth: "{{ openstack_auth }}"
 
 ####################
