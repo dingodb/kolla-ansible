@@ -1,6 +1,6 @@
 global:
-  scrape_interval: 600s
-  scrape_timeout: 200s
+  scrape_interval: {{ prometheus_scrape_interval }}
+  scrape_timeout: 10s
   evaluation_interval: 15s
 {% if prometheus_external_labels %}
   external_labels:
@@ -134,8 +134,8 @@ scrape_configs:
 
 {% if enable_prometheus_openstack_exporter | bool %}
   - job_name: openstack_exporter
-    scrape_interval: {{ prometheus_openstack_exporter_interval }}
-    scrape_timeout: {{ prometheus_openstack_exporter_timeout }}
+    scrape_interval: 600s
+    scrape_timeout: 200s
 {% if kolla_enable_tls_internal | bool %}
     scheme: https
 {% endif %}
