@@ -44,6 +44,10 @@
     ovs_socket_mem: "{{ ovs_socket_mem }}"
     hugepage_mountpoint: "{{ ovs_hugepage_mountpoint }}"
     ovs_physical_port_policy: "{{ ovs_physical_port_policy }}"
+    ovs_dpdk_bond_list:  "{{ ovs_dpdk_bond_list }}"
+    ovs_coremask: "{{ ovs_coremask }}"
+    pmd_coremask: "{{ ovs_pmd_coremask }}"
+    dpdk_interface_driver: "{{ ovs_dpdk_interface_driver }}"
 
 - name: Binds the interface to the target driver specifed in the config
   become: True
@@ -57,3 +61,7 @@
     ovs_socket_mem: "{{ ovs_socket_mem }}"
     hugepage_mountpoint: "{{ ovs_hugepage_mountpoint }}"
     ovs_physical_port_policy: "{{ ovs_physical_port_policy }}"
+    ovs_dpdk_bond_list:  "{{ ovs_dpdk_bond_list }}"
+    ovs_coremask: "{{ ovs_coremask }}"
+    pmd_coremask: "{{ ovs_pmd_coremask }}"
+    dpdk_interface_driver: "{{ ovs_dpdk_interface_driver }}"

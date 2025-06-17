@@ -18,7 +18,7 @@
     - Ensuring ovsdpdk bridges are properly setup indexed
     - Restart ovsdpdk-vswitchd container
     - Ensuring ovsdpdk bridges are properly setup named
-    - wait for dpdk tunnel ip
+    - Wait for dpdk tunnel ip
     - OVS-DPDK gather facts
 
 - name: Waiting the ovs db service to be ready
@@ -88,7 +88,7 @@
 - name: Wait for dpdk tunnel ip
   wait_for:
     host: "{{ dpdk_tunnel_interface_address }}"
-    timeout: 300
+    timeout: 30
     sleep: 5
 
 - name: OVS-DPDK gather facts
