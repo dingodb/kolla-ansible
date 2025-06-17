@@ -78,22 +78,40 @@ function gen_config {
     set_value ovs bridge_mappings ${bridge_mappings:-""}
     set_value ovs port_mappings ${port_mappings:-$(gen_port_mappings)}
     set_value ovs cidr_mappings ${cidr_mappings:-""}
-    set_value ovs ovs_coremask ${ovs_coremask:-"0x1"}
-    set_value ovs pmd_coremask ${pmd_coremask:-"0x2"}
+    set_value ovs ovs_coremask ${ovs_coremask:-"0x550"}
+    set_value ovs pmd_coremask ${pmd_coremask:-"0x500"}
     set_value ovs ovs_mem_channels ${ovs_mem_channels:-4}
     set_value ovs ovs_socket_mem ${ovs_socket_mem:-"512"}
     set_value ovs dpdk_interface_driver ${dpdk_interface_driver:-"uio_pci_generic"}
     set_value ovs hugepage_mountpoint ${hugepage_mountpoint:-"/dev/hugepages"}
     set_value ovs physical_port_policy ${ovs_physical_port_policy:-"named"}
-
+    set_value ovs ovs_dpdk_bond_list ${ovs_dpdk_bond_list:-""}
     ls -al /sys/class/net/* | awk '$0 ~ /pci/ {n=split($NF,a,"/"); print "\n[" a[n] "]\naddress = " a[n-2]  "\ndriver ="}' >> $CONFIG_FILE
 
     for nic in $(get_value | grep -v ovs); do
         set_value $nic driver $(get_driver_by_address $(get_value $nic address))
     done
     for nic in $(list_dpdk_nics); do
-        set_value $nic driver ${dpdk_interface_driver:-"uio_pci_generic"}
+        driver="$(get_value $nic driver)"
+        if [ "$driver" == "mlx5_core" ]; then
+          set_value ovs mlx_flag 1
+        else
+          set_value $nic driver ${dpdk_interface_driver:-"uio_pci_generic"}
+        fi
     done
+    ovs_dpdk_bond_list=$(get_value ovs ovs_dpdk_bond_list)
+    if [ -n "$ovs_dpdk_bond_list" ]; then
+      IFS=',' read -ra devices <<< "$ovs_dpdk_bond_list"
+      for nic in "${devices[@]}"; do
+        driver="$(get_value $nic driver)"
+        if [ "$driver" == "mlx5_core" ]; then
+          set_value ovs mlx_flag 1
+        else
+          set_value $nic driver ${dpdk_interface_driver:-"uio_pci_generic"}
+        fi
+      done
+    fi
+
     set_value ovs pci_whitelist "${pci_whitelist:-$(generate_pciwhitelist)}"
 }
 
@@ -114,7 +132,15 @@ function list_dpdk_nics {
 }
 
 function bind_nics {
-    for nic in $(list_dpdk_nics); do
+    if [ "$(is_set ovs mlx_flag)" == 0 ]; then
+       mlx_flag=$(get_value ovs mlx_flag)
+       if [ $mlx_flag == 1 ]; then
+         return 0
+       fi
+    fi
+    ovs_dpdk_bond_list=$(get_value ovs ovs_dpdk_bond_list)
+    if [ -z "$ovs_dpdk_bond_list" ]; then
+	   for nic in $(list_dpdk_nics); do
         device_address="$(get_value $nic address)"
         current_driver="$(get_driver_by_address $device_address)"
         target_driver="$(get_value $nic driver)"
@@ -123,11 +149,33 @@ function bind_nics {
             unbind_nic $device_address $current_driver
             bind_nic $device_address $target_driver
         fi
-    done
+     done
+    else
+      IFS=',' read -ra devices <<< "$ovs_dpdk_bond_list"
+      for nic in "${devices[@]}"; do
+        device_address="$(get_value $nic address)"
+        current_driver="$(get_driver_by_address $device_address)"
+        target_driver="$(get_value $nic driver)"
+        if [ "$current_driver" != "$target_driver" ]; then
+            set_value $nic old_driver $current_driver
+            unbind_nic $device_address $current_driver
+            bind_nic $device_address $target_driver
+        fi
+     done 
+    fi
+    
 }
 
 function unbind_nics {
-    for nic in $(list_dpdk_nics); do
+    if [ "$(is_set ovs mlx_flag)" == 0 ]; then
+       mlx_flag=$(get_value ovs mlx_flag)
+       if [ $mlx_flag == 1 ]; then
+         return 0
+       fi
+    fi
+    ovs_dpdk_bond_list=$(get_value ovs ovs_dpdk_bond_list)
+     if [ -z "$ovs_dpdk_bond_list" ]; then
+        for nic in $(list_dpdk_nics); do
         if [ "$(is_set $nic old_driver)" == 0 ]; then
             device_address="$(get_value $nic address)"
             current_driver="$(get_driver_by_address $device_address)"
@@ -138,7 +186,23 @@ function unbind_nics {
                 del_value $nic old_driver
             fi
         fi
-    done
+        done
+     else
+        IFS=',' read -ra devices <<< "$ovs_dpdk_bond_list"
+        for nic in "${devices[@]}"; do
+        if [ "$(is_set $nic old_driver)" == 0 ]; then
+            device_address="$(get_value $nic address)"
+            current_driver="$(get_driver_by_address $device_address)"
+            target_driver="$(get_value $nic old_driver)"
+            if [ "$current_driver" != "$target_driver" ]; then
+                unbind_nic $device_address $current_driver
+                bind_nic $device_address $target_driver
+                del_value $nic old_driver
+            fi
+        fi
+        done
+     fi
+    
 }
 
 function get_address_by_name {
@@ -209,10 +273,69 @@ function init_ovs_interfaces {
     done
 }
 
+function init_ovs_bond_interface {
+    ovs_dpdk_bond_list=$(get_value ovs ovs_dpdk_bond_list)
+   # ovs_dpdk_bond_list="eno2,eno3"
+    bridge_mapping=$(get_value ovs bridge_mappings)
+    bridge_name=`echo $bridge_mapping | cut -f 2 -d ":"`
+    IFS=',' read -ra devices <<< "$ovs_dpdk_bond_list"
+    declare -a pcis       
+    declare -a interfaces 
+    declare -a ovs_args
+   index=1
+  
+
+   for dev in "${devices[@]}"; do
+         
+    pci="$(get_value $dev address)"
+    pcis+=("$pci")
+    interfaces+=("dpdk-p$index")
+    ((index++))
+   done   
+
+
+   #for dev in ${ovs_dpdk_bond_list//,/ }; do
+  # pci="$(get_value $dev address)"
+  # pcis+=("$pci")
+  # done
+   ovs_args=(add-bond "$bridge_name" dpdkbond "${interfaces[@]}")
+
+
+   for i in "${!interfaces[@]}"; do
+	     ovs_args+=(
+	            "--"
+	           "set"
+	           "interface"
+	           "${interfaces[$i]}"
+	           "type=dpdk"
+	           "options:dpdk-devargs=${pcis[$i]}"
+	          )
+   done		  
+  #echo "exec comman：ovs-vsctl ${ovs_args[*]}"
+  ovs-vsctl "${ovs_args[@]}"
+
+  ovs-vsctl set port dpdkbond bond_mode=balance-tcp
+  ovs-vsctl set port dpdkbond lacp=active
+  #if [[ $? -eq 0 ]]; then
+   #     echo "OVS Bond config ok！"
+  #else
+   # echo "error：OVS config faild！"
+   # exit 1
+  #fi   
+}
+
 function init {
     init_ovs_db
     init_ovs_bridges
-    init_ovs_interfaces
+    ovs_dpdk_bond_list=$(get_value ovs ovs_dpdk_bond_list)
+    if [ -z "$ovs_dpdk_bond_list" ]; then
+	  #echo "ovs_dpdk_bond_list is null."
+	  init_ovs_interfaces
+
+    else
+      init_ovs_bond_interface 
+    fi
+    #init_ovs_interfaces
 }
 
 function install_network_manager_conf {
@@ -235,36 +358,54 @@ function install_network_manager_conf {
         fi
         [[ "$octet" < 3 ]] && mask+=.
     done
-    if  [[ $(is_redhat_family) == 0 ]]; then
-        cat << EOF | tee "/etc/sysconfig/network-scripts/ifcfg-$bridge"
-DEVICE=$bridge
-BOOTPROTO=static
-IPADDR=$ip
-NETMASK=$mask
-HOTPLUG=yes
-ONBOOT=yes
-NM_CONTROLLED=no
-EOF
-install_redhat_bridge_service $bridge
-    else
-        cat << EOF | tee "/etc/network/interfaces.d/$bridge.cfg"
-    auto $bridge
-    iface $bridge inet static
-        address $ip
-        netmask $mask
-EOF
+#    if  [[ $(is_redhat_family) == 0 ]]; then
+#        cat << EOF | tee "/etc/sysconfig/network-scripts/ifcfg-$bridge"
+#DEVICE=$bridge
+#BOOTPROTO=static
+#IPADDR=$ip
+#NETMASK=$mask
+#HOTPLUG=yes
+#ONBOOT=yes
+#NM_CONTROLLED=no
+#EOF
+#install_redhat_bridge_service $bridge
+#    else
+#        cat << EOF | tee "/etc/network/interfaces.d/$bridge.cfg"
+#    auto $bridge
+#    iface $bridge inet static
+#        address $ip
+#        netmask $mask
+#EOF
+#nmcli connection modify $bridge ipv4.method manual
+#nmcli connection modify $bridge  ipv4.addresses $ip/$prefix
+#nmcli connection up  $bridge
+#nmcli connection modify $bridge connection.autoconnect yes
 
-    fi
+nmcli connection add type tun con-name $bridge ifname $bridge
+nmcli connection modify $bridge tun.mode 2 tun.vnet-hdr yes 
+nmcli connection modify $bridge ipv4.addresses $ip/$prefix ipv4.method manual
+nmcli connection up  $bridge
+nmcli connection modify $bridge connection.autoconnect yes
+
+port_mapping=$(get_value ovs port_mappings)
+nic=`echo $port_mapping | cut -f 1 -d ":"`
+nmcli connection modify $nic  ipv4.method auto
+nmcli connection modify $nic ipv4.addresses ""
+ip addr del $ip/$prefix dev $nic
+
+
+    #fi
 }
 
 function uninstall_network_manager_conf {
     pair=$(get_value ovs cidr_mappings)
     bridge=`echo $pair | cut -f 1 -d ":"`
-    if  [[ $(is_redhat_family) == 0 ]]; then
-        rm -f /etc/sysconfig/network-scripts/ifcfg-$bridge
-    else
-        rm -f /etc/network/interfaces.d/$bridge.cfg
-    fi
+    #if  [[ $(is_redhat_family) == 0 ]]; then
+      #  rm -f /etc/sysconfig/network-scripts/ifcfg-$bridge
+   # else
+   # #    rm -f /etc/network/interfaces.d/$bridge.cfg
+   # fi
+   rm -f /etc/NetworkManager/system-connections/$bridge.nmconnection
 }
 
 function install_service {
@@ -348,22 +489,24 @@ function unconfigure_kernel_modules {
 }
 
 function install {
-    if [ ! -e "$CONFIG_FILE" ]; then
-        gen_config
-    fi
+    #if [ ! -e "$CONFIG_FILE" ]; then
+   #     gen_config
+    #fi
+    gen_config
     configure_kernel_modules
     if [ ! -e "$SERVICE_FILE" ]; then
         install_service
     fi
-    if [ ! -e /bin/ovs-dpdkctl ]; then
+    #if [ ! -e /bin/ovs-dpdkctl ]; then
         cp "$FULL_PATH" /bin/ovs-dpdkctl
         chmod +x /bin/ovs-dpdkctl
-    fi
+    #fi
     systemctl start ovs-dpdkctl
+    #echo '12121212222222222222222222222222222222'
     install_network_manager_conf
-    if  [[ $(is_redhat_family) == 0 ]]; then
-        systemctl start ovs-dpdk-bridge
-    fi
+    #if  [[ $(is_redhat_family) == 0 ]]; then
+    #    systemctl start ovs-dpdk-bridge
+    #fi
 }
 
 function uninstall {

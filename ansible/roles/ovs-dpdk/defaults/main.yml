@@ -44,10 +44,20 @@ ovs_port_mappings: "{{ neutron_external_interface.split(',') | zip(neutron_bridg
 tunnel_interface_network: "{{ hostvars[inventory_hostname].ansible_facts[dpdk_tunnel_interface]['ipv4']['network'] }}/{{ hostvars[inventory_hostname].ansible_facts[dpdk_tunnel_interface]['ipv4']['netmask'] }}"
 tunnel_interface_cidr: "{{ dpdk_tunnel_interface_address }}/{{ tunnel_interface_network | ansible.utils.ipaddr('prefix') }}"
 ovs_cidr_mappings: "{% if neutron_bridge_name.split(',') | length != 1 %} {neutron_bridge_name.split(',')[0]}:{{ tunnel_interface_cidr }} {% else %} {{ neutron_bridge_name }}:{{ tunnel_interface_cidr }} {% endif %}"
-ovs_mem_channels: 4
-ovs_socket_mem: 1024
-ovs_hugepage_mountpoint: /dev/hugepages
 
+dpdk_mem_channels: 4
+dpdk_socket_mem: 2048
+dpdk_coremask: "0x550"
+dpdk_pmd_coremask: "0x550"
+dpdk_interface_driver: "uio_pci_generic"
+dpdk_bond_list: ""
+ovs_mem_channels: "{{ dpdk_mem_channels }}"
+ovs_socket_mem: "{{ dpdk_socket_mem }}"
+ovs_coremask: "{{ dpdk_coremask }}"
+ovs_pmd_coremask: "{{ dpdk_pmd_coremask }}"
+ovs_dpdk_interface_driver: "{{ dpdk_interface_driver }}"
+ovs_hugepage_mountpoint: /dev/hugepages
+ovs_dpdk_bond_list: "{{ dpdk_bond_list }}"
 # ovs <2.7 required dpdk phyical port names to be index
 # in pci address order as dpdkX where X is the index
 # ovs>=2.7 allows arbitrary names but the pci address
@@ -59,6 +69,7 @@ ovs_physical_port_policy: named
 # Docker
 ####################
 ovsdpdk_tag: "{{ openstack_tag }}"
+#ovsdpdk_tag: "2023.2-debian-bookworm"
 
 ovsdpdk_db_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/{{ docker_image_name_prefix }}ovsdpdk-db"
 ovsdpdk_db_tag: "{{ ovsdpdk_tag }}"
