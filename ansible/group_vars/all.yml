@@ -1293,8 +1293,8 @@ enable_prometheus_msteams: "no"
 prometheus_alertmanager_user: "admin"
 prometheus_grafana_user: "grafana"
 prometheus_scrape_interval: "60s"
-prometheus_openstack_exporter_interval: "{{ prometheus_scrape_interval }}"
-prometheus_openstack_exporter_timeout: "45s"
+prometheus_openstack_exporter_interval: "600s"
+prometheus_openstack_exporter_timeout: "150s"
 prometheus_elasticsearch_exporter_interval: "{{ prometheus_scrape_interval }}"
 prometheus_cmdline_extras:
 prometheus_ceph_mgr_exporter_endpoints: []
