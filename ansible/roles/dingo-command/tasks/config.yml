@@ -75,7 +75,9 @@
   when:
     - dingo_command_workerdir_storage_type == "ceph"
 
-
+- name: Include NFS mount tasks if storage type is NFS
+  include_tasks: nfs.yml
+  when: dingo_command_workerdir_storage_type == 'nfs'
 
 - name: Ensuring terraform-cache directory exists
   file:
