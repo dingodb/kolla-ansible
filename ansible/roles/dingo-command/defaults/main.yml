@@ -31,6 +31,9 @@ dingo_command_services:
 
 dingo_command_database_address: "{{ database_address | put_address_in_context('url') }}:{{ database_port }}"
 dingo_command_tag: "{{ openstack_tag }}"
+#optional ceph nfs local
+dingo_command_workerdir_storage_type: "local"
+dingo_command_workerdir_storage_local_path: "/var/lib/containers/dingo-command"
 
 dingo_command_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/dingo-command"
 dingo_command_image_full: "{{ dingo_command_image }}:{{ dingo_command_tag }}"
@@ -40,7 +43,7 @@ dingo_command_default_volumes:
   - "/etc/localtime:/etc/localtime:ro"
   - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
   - "/var/log/kolla/dingo-command/:/var/log/dingo-command/"
-  - "/var/lib/dingo-command/:/var/lib/dingo-command/"
+  - "{{ dingo_command_workerdir_storage_local_path }}/:/var/lib/dingo-command/"
 
 dingo_command_extra_volumes: "{{ default_extra_volumes }}"
 dingo_command_dimensions: "{{ default_container_dimensions }}"
@@ -124,5 +127,5 @@ dingo_command_ceph_public_network: "10.220.8.0/22"
 dingo_command_ceph_mon_addresses: "10.220.8.46:6789,10.220.8.47:6789,10.220.8.48:6789"
 dingo_command_ceph_client_name: "dingoops-hdd-fs"
 dingo_command_ceph_mds_namespace: "dingoops-cephfs-hdd"
-dingo_command_ceph_mount_path: "/var/lib/dingo-command"
+dingo_command_ceph_mount_path: "{{ dingo_command_workerdir_storage_local_path }}"
 dingo_command_ceph_fs_name: "/dingoops-test"

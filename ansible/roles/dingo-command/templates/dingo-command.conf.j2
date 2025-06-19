@@ -1,7 +1,7 @@
 [DEFAULT]
 region_name = RegionOne
 center_region_flag = True
-cluster_work_dir = /var/lib/dingo-command
+cluster_work_dir = {{ dingo_command_workerdir_storage_local_path }}
 my_ip = {{ api_interface_address }}
 vip = {{ kolla_internal_fqdn }}
 transport_url = {{ rpc_transport_url }}
@@ -81,3 +81,12 @@ user = {{ aliyun_dingodb_user }}
 password = {{ aliyun_dingodb_password }}
 report_database =  {{ aliyun_dingodb_report_database }}
 
+[cinder]
+auth_url = http://{{ kolla_internal_fqdn }}:5000/
+auth_type = password
+project_domain = Default
+user_domain = Default
+project_name = service
+user_name = {{ cinder_keystone_user }}
+password =  {{ cinder_keystone_password }}
+region_name = {{ openstack_region_name }}

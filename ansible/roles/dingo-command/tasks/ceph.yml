@@ -42,16 +42,7 @@
     mode: '0755'
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
-- name: 复制Ceph配置文件
-  copy:
-    dest: /etc/ceph/ceph.conf
-    content: |
-      [global]
-      fsid = {{ dingo_command_ceph_fsid }}
-      mon_host = {{ dingo_command_ceph_mon_hosts | join(' ') }}
-      [mon.{{ dingo_command_ceph_mon_name }}]
-      public network = {{ dingo_command_ceph_public_network }}
-  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
+
 
 - name: 复制Ceph密钥文件
   copy:
