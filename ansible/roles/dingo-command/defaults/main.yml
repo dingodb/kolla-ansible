@@ -129,3 +129,6 @@ dingo_command_ceph_client_name: "dingoops-hdd-fs"
 dingo_command_ceph_mds_namespace: "dingoops-cephfs-hdd"
 dingo_command_ceph_mount_path: "{{ dingo_command_workerdir_storage_local_path }}"
 dingo_command_ceph_fs_name: "/dingoops-test"
+
+task_timeout: 7500
+soft_task_timeout: 7200
