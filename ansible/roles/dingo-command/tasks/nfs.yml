@@ -1,0 +1,33 @@
+- name: Install NFS client packages
+  package:
+    name: "{{ nfs_packages }}"
+    state: present
+  vars:
+    nfs_packages:
+      - nfs-common      # For Debian/Ubuntu
+      - nfs-utils       # For RHEL/CentOS
+  when: ansible_os_family in ['Debian', 'RedHat']
+
+- name: Start and enable NFS services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - rpcbind
+    - nfs-client.target
+  when: ansible_os_family == 'RedHat'
+  
+- name: Ensure local mount point exists
+  file:
+    path: "{{ dingo_command_workerdir_storage_local_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Mount NFS share
+  mount:
+    path: "{{ dingo_command_workerdir_storage_local_path }}"
+    src: "{{ dingo_command_workerdir_storage_nfs_path }}"  # NFS server path variable
+    fstype: nfs
+    opts: rw,sync
+    state: mounted
