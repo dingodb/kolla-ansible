@@ -1,7 +1,7 @@
 [DEFAULT]
 region_name = RegionOne
 center_region_flag = True
-cluster_work_dir = {{ dingo_command_workerdir_storage_local_path }}
+cluster_work_dir = /var/lib/dingo-command
 my_ip = {{ api_interface_address }}
 vip = {{ kolla_internal_fqdn }}
 transport_url = {{ rpc_transport_url }}
@@ -13,6 +13,7 @@ k8s_master_image = {{ k8s_master_image }}
 k8s_master_flavor = {{ k8s_master_flavor }}
 task_timeout = {{ task_timeout }}
 soft_task_timeout = {{ soft_task_timeout }}
+pushgateway_url = {{ dingo_command_pushgateway_url }}
 
 
 [database]
