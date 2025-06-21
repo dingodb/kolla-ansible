@@ -35,7 +35,7 @@ dingo_command_tag: "{{ openstack_tag }}"
 dingo_command_workerdir_storage_type: "local"
 dingo_command_workerdir_storage_local_path: "/var/lib/dingo-command"
 
-dingo_command_workerdir_storage_nfs_path: "{{ dingo_command_workerdir_storage_local_path }}"
+dingo_command_workerdir_storage_nfs_path: "{{ dingo_command_workerdir_storage_nfs_path }}"
 
 dingo_command_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/dingo-command"
 dingo_command_image_full: "{{ dingo_command_image }}:{{ dingo_command_tag }}"
