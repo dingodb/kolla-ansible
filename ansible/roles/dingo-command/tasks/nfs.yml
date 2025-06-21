@@ -4,9 +4,8 @@
     state: present
   vars:
     nfs_packages:
-      - nfs-common      # For Debian/Ubuntu
       - nfs-utils       # For RHEL/CentOS
-  when: ansible_os_family in ['Debian', 'RedHat']
+  when: ansible_os_family in ['RedHat']
 
 - name: Start and enable NFS services
   service:
