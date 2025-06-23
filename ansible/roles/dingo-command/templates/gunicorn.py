@@ -29,13 +29,13 @@ logconfig_dict = {
     "root": {"level": "DEBUG", "handlers": ["console"]},
     "loggers": {
         "gunicorn.error": {
-            "level": "DEBUG",
+            "level": "INFO",
             "handlers": ["error_file"],
             "propagate": 0,
             "qualname": "gunicorn_error",
         },
         "gunicorn.access": {
-            "level": "DEBUG",
+            "level": "INFO",
             "handlers": ["access_file"],
             "propagate": 0,
             "qualname": "access",
