@@ -19,6 +19,7 @@
       - prometheus_alertmanager
       - prometheus_openstack_exporter
       - prometheus_elasticsearch_exporter
+      - prometheus_pushgateway 
       - prometheus_blackbox_exporter
       - prometheus_libvirt_exporter
       - prometheus_msteams
@@ -161,6 +162,20 @@
     - enable_prometheus_elasticsearch_exporter | bool
   with_items:
     - "{{ prometheus_elasticsearch_exporter_port }}"
+
+- name: Checking free ports for Prometheus pushgateway
+  wait_for:
+    host: "{{ 'api' | kolla_address }}"
+    port: "{{ item }}"
+    connect_timeout: 1
+    timeout: 1
+    state: stopped
+  when:
+    - container_facts['prometheus_pushgateway'] is not defined
+    - inventory_hostname in groups['prometheus-pushgateway']
+    - enable_prometheus_pushgateway | bool
+  with_items:
+    - "{{ prometheus_pushgateway_port }}"
 
 - name: Checking free ports for Prometheus blackbox-exporter
   wait_for:

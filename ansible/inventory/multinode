@@ -661,6 +661,9 @@ monitoring
 [prometheus-elasticsearch-exporter:children]
 opensearch
 
+[prometheus-pushgateway:children]
+monitoring
+
 [prometheus-blackbox-exporter:children]
 monitoring
 
