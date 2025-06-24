@@ -105,6 +105,21 @@
     volumes: "{{ service.volumes }}"
     dimensions: "{{ service.dimensions }}"
 
+- name: Restart prometheus-pushgateway container
+  vars:
+    service_name: "prometheus-pushgateway"
+    service: "{{ prometheus_services[service_name] }}"
+  become: true
+  kolla_container:
+    action: "recreate_or_restart_container"
+    common_options: "{{ docker_common_options }}"
+    name: "{{ service.container_name }}"
+    image: "{{ service.image }}"
+    volumes: "{{ service.volumes }}"
+    dimensions: "{{ service.dimensions }}"
+  when:
+    - kolla_action != "config"
+
 - name: Restart prometheus-blackbox-exporter container
   vars:
     service_name: "prometheus-blackbox-exporter"

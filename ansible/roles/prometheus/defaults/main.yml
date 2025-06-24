@@ -120,6 +120,35 @@ prometheus_services:
     image: "{{ prometheus_elasticsearch_exporter_image_full }}"
     volumes: "{{ prometheus_elasticsearch_exporter_default_volumes + prometheus_elasticsearch_exporter_extra_volumes }}"
     dimensions: "{{ prometheus_elasticsearch_exporter_dimensions }}"
+  prometheus-pushgateway:
+    container_name: prometheus_pushgateway
+    group: prometheus-pushgateway
+    enabled: "{{ enable_prometheus_pushgateway | bool }}"
+    image: "{{ prometheus_pushgateway_image_full }}"
+    volumes:
+      - "{{ node_config_directory }}/prometheus-pushgateway/:{{ container_config_directory }}/:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "kolla_logs:/var/log/kolla/"
+      - "prometheus_pushgateway:/var/lib/prometheus-pushgateway/"
+    dimensions: "{{ prometheus_pushgateway_dimensions }}"
+    # FIXME(wszumski): The pushgateway doesn't support clustering, see:
+    # https://github.com/prometheus/pushgateway/issues/241, but it should work
+    # OK as long as you don't use DELETE operations.
+    haproxy:
+      prometheus_pushgateway:
+        enabled: "{{ enable_prometheus_pushgateway }}"
+        mode: "http"
+        external: false
+        port: "{{ prometheus_pushgateway_port }}"
+        auth_user: "{{ prometheus_pushgateway_user }}"
+        auth_pass: "{{ prometheus_pushgateway_password }}"
+      prometheus_pushgateway_external:
+        enabled: "{{ enable_prometheus_pushgateway }}"
+        mode: "http"
+        external: true
+        port: "{{ prometheus_pushgateway_port }}"
+        auth_user: "{{ prometheus_pushgateway_user }}"
+        auth_pass: "{{ prometheus_pushgateway_password }}"
   prometheus-blackbox-exporter:
     container_name: "prometheus_blackbox_exporter"
     group: "prometheus-blackbox-exporter"
@@ -382,6 +411,10 @@ prometheus_elasticsearch_exporter_image: "{{ docker_registry ~ '/' if docker_reg
 prometheus_elasticsearch_exporter_tag: "{{ prometheus_tag }}"
 prometheus_elasticsearch_exporter_image_full: "{{ prometheus_elasticsearch_exporter_image }}:{{ prometheus_elasticsearch_exporter_tag }}"
 
+prometheus_pushgateway_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/{{ docker_image_name_prefix }}prometheus-pushgateway"
+prometheus_pushgateway_tag: "{{ prometheus_tag }}"
+prometheus_pushgateway_image_full: "{{ prometheus_pushgateway_image }}:{{ prometheus_pushgateway_tag }}"
+
 prometheus_blackbox_exporter_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/{{ docker_image_name_prefix }}prometheus-blackbox-exporter"
 prometheus_blackbox_exporter_tag: "{{ prometheus_tag }}"
 prometheus_blackbox_exporter_image_full: "{{ prometheus_blackbox_exporter_image }}:{{ prometheus_blackbox_exporter_tag }}"
@@ -398,6 +431,7 @@ prometheus_cadvisor_dimensions: "{{ default_container_dimensions }}"
 prometheus_alertmanager_dimensions: "{{ default_container_dimensions }}"
 prometheus_openstack_exporter_dimensions: "{{ default_container_dimensions }}"
 prometheus_elasticsearch_exporter_dimensions: "{{ default_container_dimensions }}"
+prometheus_pushgateway_dimensions: "{{ default_container_dimensions }}" 
 prometheus_blackbox_exporter_dimensions: "{{ default_container_dimensions }}"
 prometheus_libvirt_exporter_dimensions: "{{ default_container_dimensions }}"
 

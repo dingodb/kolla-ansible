@@ -454,6 +454,7 @@
     - prometheus-alertmanager
     - prometheus-openstack-exporter
     - prometheus-elasticsearch-exporter
+    - prometheus-pushgateway
     - prometheus-blackbox-exporter
     - prometheus-libvirt-exporter
     - '&enable_prometheus_True'

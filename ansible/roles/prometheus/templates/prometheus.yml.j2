@@ -241,6 +241,17 @@ scrape_configs:
 {% endfor %}
 {% endif %}
 
+{% if enable_prometheus_pushgateway | bool %}
+  - job_name: pushgateway
+    scrape_interval: {{ prometheus_pushgateway_interval }}
+    honor_labels: true
+    static_configs:
+      - targets:
+{% for host in groups["prometheus-pushgateway"] %}
+        - '{{ 'api' | kolla_address(host) | put_address_in_context('url') }}:{{ hostvars[host]['prometheus_pushgateway_port'] }}'
+{% endfor %}
+{% endif %}
+
 {% if enable_prometheus_alertmanager | bool %}
   - job_name: alertmanager
     static_configs:
