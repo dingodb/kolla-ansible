@@ -1,0 +1,16 @@
+{
+    "command": "/opt/pushgateway/pushgateway --web.listen-address {{ api_interface_address }}:{{ prometheus_pushgateway_port }} --persistence.file /var/lib/prometheus_pushgateway/persistence.file",
+    "config_files": [],
+    "permissions": [
+        {
+            "path": "/var/log/kolla/prometheus",
+            "owner": "prometheus:kolla",
+            "recurse": true
+        },
+        {
+            "path": "/var/lib/prometheus_pushgateway",
+            "owner": "prometheus:prometheus",
+            "recurse": true
+        }
+    ]
+}

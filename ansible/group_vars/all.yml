@@ -576,6 +576,8 @@ prometheus_memcached_exporter_port: "9150"
 prometheus_rabbitmq_exporter_port: "{{ rabbitmq_prometheus_port }}"
 # Default cadvisor port of 8080 already in use
 prometheus_cadvisor_port: "18080"
+# Default pushgateway port of 9091 already in use
+prometheus_pushgateway_port: "19091"
 prometheus_fluentd_integration_port: "24231"
 prometheus_libvirt_exporter_port: "9177"
 prometheus_etcd_integration_port: "{{ etcd_client_port }}"
@@ -1282,6 +1284,7 @@ enable_prometheus_ceph_mgr_exporter: "no"
 enable_prometheus_openstack_exporter: "{{ enable_prometheus | bool }}"
 enable_prometheus_openstack_exporter_external: "no"
 enable_prometheus_elasticsearch_exporter: "{{ enable_prometheus | bool and enable_opensearch | bool }}"
+enable_prometheus_pushgateway: "{{ enable_prometheus | bool }}" 
 enable_prometheus_blackbox_exporter: "{{ enable_prometheus | bool }}"
 enable_prometheus_rabbitmq_exporter: "{{ enable_prometheus | bool and enable_rabbitmq | bool }}"
 enable_prometheus_libvirt_exporter: "{{ enable_prometheus | bool and enable_nova | bool and nova_compute_virt_type in ['kvm', 'qemu'] }}"
@@ -1289,11 +1292,13 @@ enable_prometheus_etcd_integration: "{{ enable_prometheus | bool and enable_etcd
 enable_prometheus_msteams: "no"
 
 prometheus_alertmanager_user: "admin"
+prometheus_pushgateway_user: "admin" 
 prometheus_grafana_user: "grafana"
 prometheus_scrape_interval: "60s"
 prometheus_openstack_exporter_interval: "600s"
 prometheus_openstack_exporter_timeout: "150s"
 prometheus_elasticsearch_exporter_interval: "{{ prometheus_scrape_interval }}"
+prometheus_pushgateway_interval: "60s" 
 prometheus_cmdline_extras:
 prometheus_ceph_mgr_exporter_endpoints: []
 prometheus_openstack_exporter_endpoint_type: "internal"
