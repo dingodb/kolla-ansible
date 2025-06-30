@@ -992,6 +992,7 @@ haproxy_single_external_frontend_public_port: "{{ '443' if kolla_enable_tls_exte
 ##################
 kolla_httpd_keep_alive: "60"
 kolla_httpd_timeout: "60"
+cloudkitty_httpd_timeout: "600"
 
 ######################
 # Backend TLS options
