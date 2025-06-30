@@ -747,6 +747,8 @@ service_plugins:
     enabled: "{{ neutron_plugin_agent == 'ovn' }}"
   - name: "log"
     enabled: "{{ enable_neutron_packet_logging | bool }}"
+  - name: "bm_gw"
+    enabled: "{{ enable_neutron_bm_gateway | bool }}"
 
 neutron_service_plugins: "{{ service_plugins | selectattr('enabled', 'equalto', true) | list }}"
 
