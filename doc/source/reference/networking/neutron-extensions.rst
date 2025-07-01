@@ -23,6 +23,26 @@ For setting up a testbed environment and creating a port chain, please refer
 to :networking-sfc-doc:`networking-sfc documentation
 <contributor/system_design_and_workflow.html>`.
 
+Neutron FWaaS (Firewall-as-a-Service)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Preparation and deployment
+--------------------------
+
+.. warning::
+
+   FWaaS has currently no support for OVN.
+
+Modify the ``/etc/kolla/globals.yml`` file as the following example shows:
+
+.. code-block:: yamlAdd commentMore actions
+
+   enable_neutron_fwaas: "yes"
+
+For more information on FWaaS in Neutron refer to the
+:neutron-doc:`Neutron FWaaS docs <admin/fwaas.html>`.
+
+
 Neutron VPNaaS (VPN-as-a-Service)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
