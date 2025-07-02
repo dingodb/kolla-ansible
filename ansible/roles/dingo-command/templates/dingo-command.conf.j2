@@ -13,7 +13,7 @@ k8s_master_image = {{ k8s_master_image }}
 k8s_master_flavor = {{ k8s_master_flavor }}
 task_timeout = {{ task_timeout }}
 soft_task_timeout = {{ soft_task_timeout }}
-pushgateway_url = {{ dingo_command_pushgateway_url }}
+pushgateway_url = {{ kolla_internal_fqdn }}:19091
 
 
 [database]
