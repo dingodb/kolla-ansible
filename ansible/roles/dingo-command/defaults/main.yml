@@ -134,3 +134,11 @@ dingo_command_ceph_fs_name: "/dingoops-test"
 
 task_timeout: 7500
 soft_task_timeout: 7200
+
+aliyun_dingodb_host: "172.30.14.199"
+aliyun_dingodb_port: 3307
+aliyun_dingodb_user: "bsm_monitor"
+aliyun_dingodb_read_user: "bsm_operator"
+aliyun_dingodb_password: "bsm_monitor"
+aliyun_dingodb_read_password: "bsm_monitor"
+aliyun_dingodb_report_database: "bsm_monitor"
