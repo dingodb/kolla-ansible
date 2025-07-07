@@ -40,11 +40,13 @@ workaround_ansible_issue_8743: yes
 #dingo-command options
 ##################
 bigscreen_prometheus_query_url: "http://prometheus.zetyun.cn:80/api/v1/"
-aliyun_dingodb_host: "183.166.183.48"
-aliyun_dingodb_port: 9921
+aliyun_dingodb_host: "172.30.14.199"
+aliyun_dingodb_port: 3307
 aliyun_dingodb_user: "bsm_monitor"
+aliyun_dingodb_read_user: "bsm_operator"
 aliyun_dingodb_password: "bsm_monitor"
-aliyun_dingodb_report_database: "bsm"
+aliyun_dingodb_read_password: "bsm_monitor"
+aliyun_dingodb_report_database: "bsm_monitor"
 
 ceph_keyring_content: "AQDGGBxo1+6EAxAAPtO87F7AtDfsmQVmVYLVbw=="
 dingo_command_ceph_fsid: "7e4c0eda-02e0-11ef-bedf-e4434b2ce110"
