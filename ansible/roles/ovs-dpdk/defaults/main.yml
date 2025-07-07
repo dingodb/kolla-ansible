@@ -49,6 +49,8 @@ dpdk_coremask: "0x550"
 dpdk_pmd_coremask: "0x550"
 dpdk_interface_driver: "uio_pci_generic"
 dpdk_bond_list: ""
+dpdk_multiqueue_num: "8"
+dpdk_queue_desc: "4096"
 ovs_mem_channels: "{{ dpdk_mem_channels }}"
 ovs_socket_mem: "{{ dpdk_socket_mem }}"
 ovs_coremask: "{{ dpdk_coremask }}"
@@ -56,6 +58,10 @@ ovs_pmd_coremask: "{{ dpdk_pmd_coremask }}"
 ovs_dpdk_interface_driver: "{{ dpdk_interface_driver }}"
 ovs_hugepage_mountpoint: /dev/hugepages
 ovs_dpdk_bond_list: "{{ dpdk_bond_list }}"
+
+ovs_dpdk_multiqueue_num: "{{ dpdk_multiqueue_num }}"
+ovs_dpdk_queue_desc: "{{ dpdk_queue_desc }}"
+
 # ovs <2.7 required dpdk phyical port names to be index
 # in pci address order as dpdkX where X is the index
 # ovs>=2.7 allows arbitray names but the pci address
