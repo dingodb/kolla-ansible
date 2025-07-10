@@ -1,7 +1,9 @@
 # nova.conf
 [DEFAULT]
 debug = {{ nova_logging_debug }}
-
+resume_guests_state_on_host_boot = {{ resume_guests_state_on_host_boot }}
+block_device_allocate_retries = {{ block_device_allocate_retries }}
+block_device_allocate_retries_interval = {{ block_device_allocate_retries_interval }}
 log_dir = /var/log/kolla/nova
 
 state_path = /var/lib/nova
