@@ -86,6 +86,10 @@ function gen_config {
     set_value ovs hugepage_mountpoint ${hugepage_mountpoint:-"/dev/hugepages"}
     set_value ovs physical_port_policy ${ovs_physical_port_policy:-"named"}
     set_value ovs ovs_dpdk_bond_list ${ovs_dpdk_bond_list:-""}
+
+    set_value ovs ovs_dpdk_multiqueue_num ${ovs_dpdk_multiqueue_num:-"8"}
+    set_value ovs ovs_dpdk_queue_desc ${ovs_dpdk_queue_desc:-"4096"}
+
     ls -al /sys/class/net/* | awk '$0 ~ /pci/ {n=split($NF,a,"/"); print "\n[" a[n] "]\naddress = " a[n-2]  "\ndriver ="}' >> $CONFIG_FILE
 
     for nic in $(get_value | grep -v ovs); do
@@ -324,6 +328,48 @@ function init_ovs_bond_interface {
   #fi   
 }
 
+
+function get_dpdk_interfaces() {
+    ovs-vsctl list interface | \
+    awk -F: '
+        /name/ {gsub(/[[:space:]]|\"/, "", $2); name=$2}
+        /type/ && $2 ~ /dpdk/ {print name}
+    '
+}
+
+function set_queues() {
+  local iface=$1
+	local rtxq=$2
+  local queue_desc=$3
+    
+    ovs-vsctl set interface "$iface" \
+        options:n_rxq="$rtxq" \
+        options:n_txq="$rtxq"
+    ovs-vsctl set interface "$iface" \
+        options:n_rxq_desc="$queue_desc" \
+        options:n_txq_desc="$queue_desc"
+}
+
+
+function init_dpdk_multiqueue_num {
+  dpdk_ifaces=$(get_dpdk_interfaces)
+    
+ if [[ -z "$dpdk_ifaces" ]]; then
+     echo "no fond dpdk interface."
+     exit 0
+ fi
+    
+echo "find DPDK:"
+echo "$dpdk_ifaces"
+echo ""
+ovs_dpdk_multiqueue_num=$(get_value ovs ovs_dpdk_multiqueue_num)
+ovs_dpdk_queue_desc=$(get_value ovs ovs_dpdk_queue_desc)  
+while read -r iface; do
+   set_queues "$iface" "$ovs_dpdk_multiqueue_num" "$ovs_dpdk_queue_desc"
+done <<< "$dpdk_ifaces"
+
+}
+
 function init {
     init_ovs_db
     init_ovs_bridges
@@ -335,6 +381,9 @@ function init {
     else
       init_ovs_bond_interface 
     fi
+
+    init_dpdk_multiqueue_num
+
     #init_ovs_interfaces
 }
 

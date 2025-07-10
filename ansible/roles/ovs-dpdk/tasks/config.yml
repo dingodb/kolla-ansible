@@ -41,7 +41,11 @@
     pmd_coremask: "{{ ovs_pmd_coremask }}"
     dpdk_interface_driver: "{{ ovs_dpdk_interface_driver }}"
 
-- name: Binds the interface to the target driver specified in the config
+    ovs_dpdk_multiqueue_num: "{{ ovs_dpdk_multiqueue_num }}"
+    ovs_dpdk_queue_desc: "{{ ovs_dpdk_queue_desc }}"
+
+
+- name: Binds the interface to the target driver specifed in the config
   become: True
   command: "{{ node_config_directory }}/ovsdpdk-db/ovs-dpdkctl.sh bind_nics"
   environment:
@@ -57,3 +61,6 @@
     ovs_coremask: "{{ ovs_coremask }}"
     pmd_coremask: "{{ ovs_pmd_coremask }}"
     dpdk_interface_driver: "{{ ovs_dpdk_interface_driver }}"
+
+    ovs_dpdk_multiqueue_num: "{{ ovs_dpdk_multiqueue_num }}"
+    ovs_dpdk_queue_desc: "{{ ovs_dpdk_queue_desc }}"
