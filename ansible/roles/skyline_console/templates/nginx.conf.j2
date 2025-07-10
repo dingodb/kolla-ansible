@@ -265,6 +265,10 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_set_header X-Forwarded-Host $host;
             proxy_set_header Host $http_host;
+
+            proxy_connect_timeout 600s;    # 后端连接超时时间
+            proxy_send_timeout 600s;       # 向后端发送请求超时时间
+            proxy_read_timeout 600s;       # 从后端读取响应超时时间
         }
         # 处理 WebSocket 请求
         location /ws_dingo-command/regionone/v1 {
@@ -292,6 +296,17 @@ http {
         }
         {% endif %}
 
+        {% if enable_ceph_rgw | bool %}# Region: {{ openstack_region_name }}, Service: ceph_rgw
+        location {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/swift {
+            proxy_pass {{ internal_protocol }}://{{ ceph_rgw_internal_fqdn }}:{{ ceph_rgw_port }}/{{ 'swift' if not ceph_rgw_swift_compatibility | bool }};
+            proxy_redirect {{ internal_protocol }}://{{ ceph_rgw_internal_fqdn }}:{{ ceph_rgw_port }}/{{ 'swift' if not ceph_rgw_swift_compatibility | bool }} {{ skyline_nginx_prefix }}/{{                  openstack_region_name | lower }}/swift/;
+            proxy_buffering off;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header Host $http_host;
+        }
+        {% endif %}
     }
 
 }

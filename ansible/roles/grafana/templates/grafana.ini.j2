@@ -30,3 +30,10 @@ check_for_updates = false
 [security]
 admin_user = {{ grafana_admin_username }}
 admin_password = {{ grafana_admin_password }}
+
+[auth.anonymous]
+enabled = true
+org_role = Viewer
+
+[security]
+allow_embedding = true

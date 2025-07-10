@@ -86,8 +86,10 @@ function gen_config {
     set_value ovs hugepage_mountpoint ${hugepage_mountpoint:-"/dev/hugepages"}
     set_value ovs physical_port_policy ${ovs_physical_port_policy:-"named"}
     set_value ovs ovs_dpdk_bond_list ${ovs_dpdk_bond_list:-""}
+
     set_value ovs ovs_dpdk_multiqueue_num ${ovs_dpdk_multiqueue_num:-"8"}
     set_value ovs ovs_dpdk_queue_desc ${ovs_dpdk_queue_desc:-"4096"}
+
     ls -al /sys/class/net/* | awk '$0 ~ /pci/ {n=split($NF,a,"/"); print "\n[" a[n] "]\naddress = " a[n-2]  "\ndriver ="}' >> $CONFIG_FILE
 
     for nic in $(get_value | grep -v ovs); do
@@ -326,6 +328,7 @@ function init_ovs_bond_interface {
   #fi   
 }
 
+
 function get_dpdk_interfaces() {
     ovs-vsctl list interface | \
     awk -F: '
@@ -378,7 +381,9 @@ function init {
     else
       init_ovs_bond_interface 
     fi
+
     init_dpdk_multiqueue_num
+
     #init_ovs_interfaces
 }
 

@@ -629,6 +629,9 @@ neutron_ovn_agent_extra_volumes: "{{ neutron_extra_volumes }}"
 ####################
 dhcp_agents_per_network: 2
 max_l3_agents_per_router: 3
+# https://docs.openstack.org/neutron/2024.2/configuration/config-samples.html
+# Maximum number of allowed address pairs (integer value)
+max_allowed_address_pair: 30
 
 # Adds a delay (in seconds) to the serial neutron_l3_agent container restart
 # process, allowing routers to fail over without loss of connectivity.
@@ -656,6 +659,8 @@ neutron_metadata_workers: "{{ openstack_service_workers }}"
 # Subprojects
 ####################
 neutron_subprojects:
+  - name: "neutron-fwaas"
+    enabled: "{{ enable_neutron_fwaas | bool }}"
   - name: "networking-sfc"
     enabled: "{{ enable_neutron_sfc | bool }}"
   - name: "neutron-dynamic-routing"
@@ -723,6 +728,8 @@ neutron_modules_extra: []
 # Service Plugins
 ####################
 service_plugins:
+  - name: "firewall_v2"
+    enabled: "{{ enable_neutron_fwaas | bool }}"
   - name: "flow_classifier"
     enabled: "{{ enable_neutron_sfc | bool }}"
   - name: "metering"
@@ -747,6 +754,8 @@ service_plugins:
     enabled: "{{ neutron_plugin_agent == 'ovn' }}"
   - name: "log"
     enabled: "{{ enable_neutron_packet_logging | bool }}"
+  - name: "bm_gw"
+    enabled: "{{ enable_neutron_bm_gateway | bool }}"
 
 neutron_service_plugins: "{{ service_plugins | selectattr('enabled', 'equalto', true) | list }}"
 
@@ -779,6 +788,8 @@ agent_extensions:
 neutron_agent_extensions: "{{ agent_extensions | selectattr('enabled', 'equalto', true) | list }}"
 
 l3_agent_extensions:
+  - name: "fwaas_v2"
+    enabled: "{{ enable_neutron_fwaas | bool }}"
   - name: "vpnaas"
     enabled: "{{ enable_neutron_vpnaas | bool }}"
   - name: "port_forwarding"

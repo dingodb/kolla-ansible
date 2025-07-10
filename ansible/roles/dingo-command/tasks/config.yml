@@ -10,7 +10,7 @@
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 - name: Ensuring /var/lib/dingo-command directory exists
   file:
-    path: "/var/lib/dingo-command"
+    path: "{{ dingo_command_workerdir_storage_local_path }}"
     state: "directory"
     owner: "{{ config_owner_user }}"
     group: "{{ config_owner_group }}"
@@ -71,24 +71,17 @@
   notify:
     - Restart dingo-command container
 
-- name: Copying over .terraformrc
-  vars:
-    dingo_command: "{{ dingo_command_services['dingo-command'] }}"
-  template:
-    src: "{{ role_path }}/templates/.terraformrc"
-    dest: "/root/.terraformrc"
-    mode: "0660"
-  become: true
-  when:
-    - dingo_command.enabled | bool
-  notify:
-    - Restart dingo-command container
-
 - include_tasks: "ceph.yml"
+  when:
+    - dingo_command_workerdir_storage_type == "ceph"
+
+- name: Include NFS mount tasks if storage type is NFS
+  include_tasks: nfs.yml
+  when: dingo_command_workerdir_storage_type == 'nfs'
 
 - name: Ensuring terraform-cache directory exists
   file:
-    path: "/var/lib/dingo-command/terraform-cache"
+    path: "{{ dingo_command_workerdir_storage_local_path }}/terraform-cache"
     state: "directory"
     owner: "{{ config_owner_user }}"
     group: "{{ config_owner_group }}"
@@ -113,7 +106,7 @@
 - name: Copy registry.terraform.io terraform providers
   copy:
     src: "{{ role_path }}/templates/registry.terraform.io"
-    dest: "/var/lib/dingo-command/terraform-cache/"
+    dest: "{{ dingo_command_workerdir_storage_local_path }}/terraform-cache/"
     owner: "{{ config_owner_user }}"
     group: "{{ config_owner_group }}"
     mode: "0770"

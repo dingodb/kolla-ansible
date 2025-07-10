@@ -1,6 +1,6 @@
 global:
-  scrape_interval: 600s
-  scrape_timeout: 200s
+  scrape_interval: {{ prometheus_scrape_interval }}
+  scrape_timeout: 10s
   evaluation_interval: 15s
 {% if prometheus_external_labels %}
   external_labels:
@@ -225,6 +225,17 @@ scrape_configs:
     static_configs:
 {% for host in groups['ironic-conductor'] %}
       - targets: ["{{ 'api' | kolla_address(host) | put_address_in_context('url') }}:{{ hostvars[host]['ironic_prometheus_exporter_port'] }}"]
+{% endfor %}
+{% endif %}
+
+{% if enable_prometheus_pushgateway | bool %}
+  - job_name: pushgateway
+    scrape_interval: {{ prometheus_pushgateway_interval }}
+    honor_labels: true
+    static_configs:
+      - targets:
+{% for host in groups["prometheus-pushgateway"] %}
+        - '{{ 'api' | kolla_address(host) | put_address_in_context('url') }}:{{ hostvars[host]['prometheus_pushgateway_port'] }}'
 {% endfor %}
 {% endif %}
 

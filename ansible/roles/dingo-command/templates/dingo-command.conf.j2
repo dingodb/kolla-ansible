@@ -11,6 +11,10 @@ harbor_url = {{ harbor_url }}
 fileserver_url = {{ fileserver_url }}
 k8s_master_image = {{ k8s_master_image }}
 k8s_master_flavor = {{ k8s_master_flavor }}
+task_timeout = {{ task_timeout }}
+soft_task_timeout = {{ soft_task_timeout }}
+pushgateway_url = {{ kolla_internal_fqdn }}:19091
+
 
 [database]
 connection = mysql+pymysql://{{ dingo_command_database_user }}:{{ dingo_command_database_password }}@{{ dingo_command_database_address }}/dingoops?charset=utf8mb3
@@ -78,6 +82,17 @@ region_name = {{ openstack_region_name }}
 host = {{ aliyun_dingodb_host }}
 port = {{ aliyun_dingodb_port }}
 user = {{ aliyun_dingodb_user }}
+read_user = {{ aliyun_dingodb_read_user }}
 password = {{ aliyun_dingodb_password }}
+read_password = {{ aliyun_dingodb_read_password }}
 report_database =  {{ aliyun_dingodb_report_database }}
 
+[cinder]
+auth_url = http://{{ kolla_internal_fqdn }}:5000/
+auth_type = password
+project_domain = Default
+user_domain = Default
+project_name = service
+user_name = {{ cinder_keystone_user }}
+password =  {{ cinder_keystone_password }}
+region_name = {{ openstack_region_name }}

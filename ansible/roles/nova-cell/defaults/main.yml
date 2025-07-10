@@ -474,6 +474,11 @@ openstack_nova_auth: "{{ openstack_auth }}"
 nova_libvirt_port: "{{ '16514' if libvirt_tls | bool else '16509' }}"
 nova_ssh_port: "8022"
 
+# https://docs.openstack.org/nova/2024.2/configuration/sample-config.html
+resume_guests_state_on_host_boot: true
+block_device_allocate_retries: 600
+block_device_allocate_retries_interval: 6
+
 # NOTE(mgoddard): The order of this list defines the order in which services
 # are restarted during an upgrade in reload.yml.  Restarting the conductor
 # first is recommended.

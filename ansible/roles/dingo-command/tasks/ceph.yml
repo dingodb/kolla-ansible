@@ -42,23 +42,19 @@
     mode: '0755'
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
-- name: 复制Ceph配置文件
+- name: 写入ceph.client.{{ dingo_command_ceph_client_name }}.keyring内容
   copy:
-    dest: /etc/ceph/ceph.conf
-    content: |
-      [global]
-      fsid = {{ dingo_command_ceph_fsid }}
-      mon_host = {{ dingo_command_ceph_mon_hosts | join(' ') }}
-      [mon.{{ dingo_command_ceph_mon_name }}]
-      public network = {{ dingo_command_ceph_public_network }}
+    dest: /etc/ceph/ceph.client.{{ dingo_command_ceph_client_name }}.keyring
+    content: "{{ ceph_keyring_content }}"
+    mode: '0755'
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
-- name: 复制Ceph密钥文件
-  copy:
-    dest: /etc/ceph/ceph.client.dingoops-hdd-fs.keyring
-    content: "{{ ceph_keyring_content }}"
-    mode: '0600'
-  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
+# - name: 复制ceph.client.keyring.j2为ceph.client.{{ dingo_command_ceph_client_name }}.keyring
+#   template:
+#     src: ceph.client.keyring.j2
+#     dest: /etc/ceph/ceph.client.{{ dingo_command_ceph_client_name }}.keyring
+#     mode: '0600'
+#   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
 - name: 确保挂载点目录存在
   file:
@@ -68,10 +64,7 @@
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
 - name: 挂载Ceph文件系统
-  mount:
-    path: "{{ dingo_command_ceph_mount_path }}"
-    src: "{{ dingo_command_ceph_mon_addresses }}:{{ dingo_command_ceph_fs_name }}"
-    fstype: ceph
-    opts: "name={{ dingo_command_ceph_client_name }},secretfile=/etc/ceph/ceph.client.{{ dingo_command_ceph_client_name }}.keyring,acl,noatime,_netdev,mds_namespace={{ dingo_command_ceph_mds_namespace }}"
-    state: mounted
+  shell: |
+    mount.ceph "{{ dingo_command_ceph_mon_addresses }}:/" "{{ dingo_command_ceph_mount_path }}" \
+      -o name={{ dingo_command_ceph_client_name }},secretfile=/etc/ceph/ceph.client.{{ dingo_command_ceph_client_name }}.keyring,acl,noatime,_netdev,mds_namespace={{ dingo_command_ceph_mds_namespace }}
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
