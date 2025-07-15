@@ -12,6 +12,7 @@ allow_resize_to_same_host = true
 
 {% if service_name == "nova-compute-ironic" %}
 host={{ nova_compute_ironic_custom_host | default(ansible_facts.hostname) }}-ironic
+force_config_drive = true
 log_file = /var/log/kolla/nova/nova-compute-ironic.log
 compute_driver = ironic.IronicDriver
 ram_allocation_ratio = 1.0
