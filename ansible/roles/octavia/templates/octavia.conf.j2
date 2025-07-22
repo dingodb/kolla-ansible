@@ -154,6 +154,9 @@ ca_certificates_file = {{ openstack_cacert }}
 region_name = {{ openstack_region_name }}
 endpoint_type = internal
 ca_certificates_file = {{ openstack_cacert }}
+{% if octavia_nova_enable_anti_affinity | bool %}
+enable_anti_affinity = true
+{% endif %}
 {% if enable_octavia_jobboard | bool %}
 
 [task_flow]
