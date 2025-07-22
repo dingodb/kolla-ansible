@@ -10,6 +10,7 @@ Type=oneshot
 User=root
 Group=root
 RemainAfterExit=true
+ExecStartPre=/bin/sleep 20
 ExecStartPre=/sbin/ip link set dev {{ octavia_network_interface }} address {{ port_info.port.mac_address }}
 ExecStart=/sbin/dhclient -v {{ octavia_network_interface }} -cf /etc/dhcp/octavia-dhclient.conf
 ExecStop=/sbin/dhclient -r {{ octavia_network_interface }}
