@@ -1,5 +1,5 @@
 [client.{{ dingo_command_ceph_client_name }}]
     key = {{ ceph_keyring_content }}
     caps mds = "allow rwps fsname={{ dingo_command_ceph_fs_name }}"
-    caps mon = "allow r fsname={{ dingo_command_ceph_fs_name }}"
-    caps osd = "allow rw tag cephfs data={{ dingo_command_ceph_fs_name }}"
+    caps mon = "allow r"
+    caps osd = "allow rw tag cephfs data={{ dingo_command_ceph_mds_namespace }}"
