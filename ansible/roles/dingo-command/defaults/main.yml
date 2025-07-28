@@ -116,15 +116,15 @@ dingo_command_database_shard:
 dingo_command_enable_tls_backend: "{{ kolla_enable_tls_backend }}"
 
 ceph_keyring_content: "AQDGGBxo1+6EAxAAPtO87F7AtDfsmQVmVYLVbw=="
-dingo_command_ceph_fsid: "7e4c0eda-02e0-11ef-bedf-e4434b2ce110"
-dingo_command_ceph_mon_hosts:
-  - "[v2:10.220.8.46:3300/0,v1:10.220.8.46:6789/0]"
-  - "[v2:10.220.8.47:3300/0,v1:10.220.8.47:6789/0]"
-  - "[v2:10.220.8.48:3300/0,v1:10.220.8.48:6789/0]"
-  - "[v2:10.220.8.45:3300/0,v1:10.220.8.45:6789/0]"
-  - "[v2:10.220.8.44:3300/0,v1:10.220.8.44:6789/0]"
-dingo_command_ceph_mon_name: "sd-ceph01"
-dingo_command_ceph_public_network: "10.220.8.0/22"
+#dingo_command_ceph_fsid: "7e4c0eda-02e0-11ef-bedf-e4434b2ce110"
+# dingo_command_ceph_mon_hosts:
+#   - "[v2:10.220.8.46:3300/0,v1:10.220.8.46:6789/0]"
+#   - "[v2:10.220.8.47:3300/0,v1:10.220.8.47:6789/0]"
+#   - "[v2:10.220.8.48:3300/0,v1:10.220.8.48:6789/0]"
+#   - "[v2:10.220.8.45:3300/0,v1:10.220.8.45:6789/0]"
+#   - "[v2:10.220.8.44:3300/0,v1:10.220.8.44:6789/0]"
+# dingo_command_ceph_mon_name: "sd-ceph01"
+# dingo_command_ceph_public_network: "10.220.8.0/22"
 
 dingo_command_ceph_mon_addresses: "10.220.8.46:6789,10.220.8.47:6789,10.220.8.48:6789"
 dingo_command_ceph_client_name: "dingoops-hdd-fs"
