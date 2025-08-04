@@ -46,7 +46,7 @@
   copy:
     dest: /etc/ceph/ceph.client.{{ dingo_command_ceph_client_name }}.keyring
     content: "{{ ceph_keyring_content }}"
-    mode: '0755'
+    mode: '0600'
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
 # - name: 复制ceph.client.keyring.j2为ceph.client.{{ dingo_command_ceph_client_name }}.keyring
@@ -60,11 +60,11 @@
   file:
     path: "{{ dingo_command_ceph_mount_path }}"
     state: directory
-    mode: '0600'
+    mode: '0755'
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
 - name: 挂载Ceph文件系统
   shell: |
-    mount.ceph "{{ dingo_command_ceph_mon_addresses }}:/{{ dingo_command_ceph_fs_name }}" "{{ dingo_command_ceph_mount_path }}" \
+    mount.ceph "{{ dingo_command_ceph_mon_addresses }}:{{ dingo_command_ceph_fs_name }}" "{{ dingo_command_ceph_mount_path }}" \
       -o name={{ dingo_command_ceph_client_name }},secretfile=/etc/ceph/ceph.client.{{ dingo_command_ceph_client_name }}.keyring,acl,noatime,_netdev,mds_namespace={{ dingo_command_ceph_mds_namespace }}
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
