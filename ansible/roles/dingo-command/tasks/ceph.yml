@@ -60,7 +60,7 @@
   file:
     path: "{{ dingo_command_ceph_mount_path }}"
     state: directory
-    mode: '0755'
+    mode: '0600'
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
 
 - name: 挂载Ceph文件系统
