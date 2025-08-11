@@ -62,6 +62,7 @@ automated_clean=false
 send_sensor_data = true
 send_sensor_data_for_undeployed_nodes = {{ ironic_prometheus_exporter_sensor_data_undeployed_nodes }}
 send_sensor_data_interval = {{ ironic_prometheus_exporter_sensor_data_interval }}
+automatic_lessee = true
 {% endif %}
 {% endif %}
 
@@ -220,3 +221,6 @@ enable_proxy_headers_parsing = True
 [dhcp]
 dhcp_provider = none
 {% endif %}
+
+[metrics]
+backend = collector
