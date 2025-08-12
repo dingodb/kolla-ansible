@@ -328,8 +328,7 @@ octavia_amp_security_groups:
     name: "lb-health-mgr-sec-grp"
     enabled: "{{ true if octavia_network_type == 'tenant' else false }}"
     rules:
-      - protocol: icmp
-      - protocol: ipv6-icmp
+      - protocol: "{{ 'ipv6-icmp' if octavia_network_address_family == 'ipv6' else 'icmp' }}"
       - protocol: udp
         src_port: "{{ octavia_health_manager_port }}"
         dst_port: "{{ octavia_health_manager_port }}"
