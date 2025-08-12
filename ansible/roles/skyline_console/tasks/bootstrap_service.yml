@@ -1,7 +1,7 @@
 ---
 - name: Running Skyline bootstrap container
   vars:
-    skyline_apiserver: "{{ skyline_services['skyline-apiserver'] }}"
+    skyline_apiserver: "{{ skyline_services['skyline-console'] }}"
   become: true
   kolla_container:
     action: "start_container"
