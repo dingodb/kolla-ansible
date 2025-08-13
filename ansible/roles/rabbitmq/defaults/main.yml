@@ -117,6 +117,10 @@ rabbitmq_plugins:
     enabled: True
   - name: "rabbitmq_prometheus"
     enabled: "{{ rabbitmq_enable_prometheus_plugin | bool }}"
+  - name: "rabbitmq_shovel"
+    enabled: True
+  - name: "rabbitmq_shovel_management"
+    enabled: True
 
 rabbitmq_enabled_plugins: "{{ rabbitmq_plugins | selectattr('enabled', 'equalto', true) | list }}"
 
