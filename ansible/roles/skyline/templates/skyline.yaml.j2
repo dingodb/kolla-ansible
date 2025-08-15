@@ -29,6 +29,9 @@ openstack:
 {% if enable_neutron_qos | bool %}
     qos: neutron_qos
 {% endif %}
+{% if enable_neutron_fwaas | bool %}
+    fwaas_v2: neutron_firewall
+{% endif %}
 {% if enable_neutron_vpnaas | bool %}
     vpnaas: neutron_vpn
 {% endif %}
