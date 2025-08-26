@@ -74,6 +74,7 @@
 - include_tasks: "ceph.yml"
   when:
     - dingo_command_workerdir_storage_type == "ceph"
+    - dingo_command_workerdir_storage_enabled | bool
 
 - name: Include NFS mount tasks if storage type is NFS
   include_tasks: nfs.yml
