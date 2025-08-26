@@ -14,6 +14,10 @@ k8s_master_flavor = {{ k8s_master_flavor }}
 task_timeout = {{ task_timeout }}
 soft_task_timeout = {{ soft_task_timeout }}
 pushgateway_url = {{ kolla_internal_fqdn }}:19091
+chart_harbor_url = {{ chart_harbor_url }}
+chart_harbor_user = {{ chart_harbor_user }}
+chart_harbor_passwd = {{ chart_harbor_passwd  }}
+
 
 
 [database]
@@ -96,3 +100,9 @@ project_name = service
 user_name = {{ cinder_keystone_user }}
 password =  {{ cinder_keystone_password }}
 region_name = {{ openstack_region_name }}
+
+[harbor]
+base_url="https://183.166.183.48:443"
+robot_username="robot$$dingo_command" # 注意这里需要加两个$
+robot_token="S5Uqg5FSxoQlnoMt7JKiBIQsJ9US5wCI"
+verify_ssl=False
