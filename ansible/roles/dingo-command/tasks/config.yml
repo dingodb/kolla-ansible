@@ -93,7 +93,7 @@
 - name: Copy dingo.com terraform providers
   copy:
     src: "{{ role_path }}/templates/dingo.com"
-    dest: "/var/lib/dingo-command/terraform-cache/"
+    dest: "{{ dingo_command_workerdir_storage_local_path }}/terraform-cache/"
     owner: "{{ config_owner_user }}"
     group: "{{ config_owner_group }}"
     mode: "0770"
