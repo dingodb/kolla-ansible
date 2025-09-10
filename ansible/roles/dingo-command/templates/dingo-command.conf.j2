@@ -102,7 +102,7 @@ password =  {{ cinder_keystone_password }}
 region_name = {{ openstack_region_name }}
 
 [harbor]
-base_url="https://183.166.183.48:443"
-robot_username="robot$$dingo_command" # 注意这里需要加两个$
-robot_token="S5Uqg5FSxoQlnoMt7JKiBIQsJ9US5wCI"
-verify_ssl=False
+base_url={{ dingo_command_harbor_url }}
+robot_username={{ dingo_command_harbor_robot_username }}
+robot_token={{ dingo_command_harbor_robot_token }}
+verify_ssl={{ dingo_command_harbor_verify_ssl }}
