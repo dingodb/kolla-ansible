@@ -15,6 +15,7 @@
       BOOTSTRAP:
     name: "dingo-command"
     restart_policy: oneshot
+    privileged: True
     volumes: "{{ dingo_command.volumes | reject('equalto', '') | list }}"
   run_once: True
   delegate_to: "{{ groups[dingo_command.group][0] }}"
