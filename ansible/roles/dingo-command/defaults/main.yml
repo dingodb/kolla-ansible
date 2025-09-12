@@ -45,6 +45,7 @@ dingo_command_default_volumes:
   - "/etc/localtime:/etc/localtime:ro"
   - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
   - "/var/log/kolla/dingo-command/:/var/log/dingo-command/"
+  - "/var/run/netns:/var/run/netns:ro"
   - "{{ dingo_command_workerdir_storage_local_path }}/:/var/lib/dingo-command/"
 
 dingo_command_extra_volumes: "{{ default_extra_volumes }}"
