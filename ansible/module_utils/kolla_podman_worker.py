@@ -533,7 +533,11 @@ class PodmanWorker(ContainerWorker):
             self.start_container()
 
         elif strategy == 'COPY_ALWAYS':
-            self.restart_container()
+            self.ensure_image()
+
+            self.stop_container()
+            self.remove_container()
+            self.start_container()
 
     def start_container(self):
         self.ensure_image()
