@@ -13,6 +13,7 @@
     dimensions: "{{ service.dimensions }}"
     healthcheck: "{{ service.healthcheck | default(omit) }}"
     privileged: True
+    pid_mode: "host"
   when:
     - kolla_action != "config"
 
