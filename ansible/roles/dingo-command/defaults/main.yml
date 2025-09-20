@@ -145,4 +145,4 @@ aliyun_dingodb_read_password: "bsm_monitor"
 aliyun_dingodb_report_database: "bsm_monitor"
 
 # 默认使用本身的地址
-center_rpc_transport_url: {{ rpc_transport_url }}
+center_rpc_transport_url: "{{ rpc_transport_url }}"
