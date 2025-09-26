@@ -73,6 +73,72 @@
   with_dict: "{{ manila_services }}"
   notify:
     - Restart {{ item.key }} container
+- name: check /etc/ganesha is exists
+  vars:
+    service: "{{ manila_services['manila-share'] }}"
+    service_name: "{{ item }}"
+  file:
+    path: /etc/ganesha
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  when:
+    - inventory_hostname in groups[service.group]
+    - service.enabled | bool
+    - enable_manila_backend_nfs | bool
+
+- name: generate ganesha.conf for manila-share
+  vars:
+    service: "{{ manila_services['manila-share'] }}"
+    service_name: "{{ item }}"
+  template:
+    src: "{{ role_path }}/templates/ganesha.conf.j2"
+    dest: "/etc/ganesha/ganesha.conf"
+    mode: "0644"
+  become: true
+  when:
+    - inventory_hostname in groups[service.group]
+    - service.enabled | bool
+    - enable_manila_backend_nfs | bool
+  with_items:
+    - "manila-share"
+
+- name: generate dbus conf for ganesha
+  vars:
+    service: "{{ manila_services['manila-share'] }}"
+    service_name: "{{ item }}"
+  template:
+    src: "{{ role_path }}/templates/org.ganesha.nfsd.conf.j2"
+    dest: "/etc/dbus-1/system.d/org.ganesha.nfsd.conf"
+    mode: "0644"
+  become: true
+  when:
+    - inventory_hostname in groups[service.group]
+    - service.enabled | bool
+    - enable_manila_backend_nfs | bool
+  with_items:
+    - "manila-share"
+
+- name: mkdir /run/ganesha
+  vars:
+    service: "{{ manila_services['manila-share'] }}"
+    service_name: "{{ item }}"
+  file:
+    path: /run/ganesha
+    state: directory
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: '0777'
+  become: true
+  when:
+    - inventory_hostname in groups[service.group]
+    - service.enabled | bool
+    - enable_manila_backend_nfs | bool
+  with_items:
+    - "manila-share"
+
 
 - name: Copying over manila-share.conf
   vars:

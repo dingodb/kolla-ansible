@@ -1,0 +1,28 @@
+NFS_Core_Param
+{
+    Enable_NLM = false;
+    Bind_addr = 0.0.0.0;
+    NFS_Port = 2050;
+}
+{% if enable_manila_backend_cephfs_nfs | bool %}
+{% for backend in manila_ceph_backends %}
+{% if backend.driver == 'cephfsnfs' %}
+RADOS_URLS {
+    ceph_conf = "/etc/ceph/{{ backend.cluster }}.conf";
+    userid = "{{ ceph_manila_user }}";
+    watch_url = "rados://{{ manila_export_store_pool_name }}/{{ manila_export_object_name }}";
+}
+
+%url rados://{{ manila_export_store_pool_name }}/{{ manila_export_object_name }}
+
+NFSv4 {
+    RecoveryBackend = "rados_kv";
+}
+RADOS_KV {
+    ceph_conf = "/etc/ceph/{{ backend.cluster }}.conf";
+    userid = "{{ ceph_manila_user }}";
+    pool = "{{ manila_export_store_pool_name }}";
+}
+{% endif %}
+{% endfor %}
+{% endif %}
