@@ -1253,6 +1253,12 @@ ceph_gnocchi_keyring: "client.{{ ceph_gnocchi_user }}.keyring"
 ceph_manila_keyring: "client.{{ ceph_manila_user }}.keyring"
 ceph_nova_keyring: "{{ ceph_cinder_keyring }}"
 
+# ceph pools configuration
+manila_export_store_pool_name: "ganesha-nfs-data"
+manila_export_object_name: "ganesha-export-index"
+
+
+
 #####################
 # VMware support
 ######################

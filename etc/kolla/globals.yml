@@ -698,6 +698,12 @@ dingo_command_ceph_fs_name: "/dingoops-test"
 ######################################
 # Manila - Shared File Systems Options
 ######################################
+#example
+#enable_manila: "yes"
+#enable_manila_backend_cephfs_nfs: "yes"
+#manila_cephfs_filesystem_name: "manila-cephfs-hdd"
+
+
 # HNAS backend configuration
 #hnas_ip:
 #hnas_user:
