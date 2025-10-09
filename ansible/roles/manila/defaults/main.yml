@@ -39,6 +39,20 @@ manila_services:
     volumes: "{{ manila_share_default_volumes + manila_share_extra_volumes + lookup('vars', 'run_default_volumes_' + kolla_container_engine) }}"
     dimensions: "{{ manila_share_dimensions }}"
     healthcheck: "{{ manila_share_healthcheck }}"
+    haproxy:
+      manila_share:
+        enabled: "{{ enable_manila and enable_manila_backend_nfs }}"
+        mode: "tcp"
+        external: false
+        port: "{{ manila_share_port }}"
+        listen_port: "{{ manila_share_listen_port }}"
+      manila_share_external:
+        enabled: "{{ enable_manila and enable_manila_backend_nfs }}"
+        mode: "tcp"
+        external: true
+        external_fqdn: "{{ manila_share_external_fqdn }}"
+        port: "{{ manila_share_public_port }}"
+        listen_port: "{{ manila_share_listen_port }}"
   manila-data:
     container_name: "manila_data"
     group: "manila-data"
