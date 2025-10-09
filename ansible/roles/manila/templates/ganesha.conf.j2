@@ -2,7 +2,7 @@ NFS_Core_Param
 {
     Enable_NLM = false;
     Bind_addr = 0.0.0.0;
-    NFS_Port = 2050;
+    NFS_Port = {{ manila_share_listen_port }};
 }
 {% if enable_manila_backend_cephfs_nfs | bool %}
 {% for backend in manila_ceph_backends %}
