@@ -177,7 +177,7 @@ manila_share_default_volumes:
   - "kolla_logs:/var/log/kolla/"
   - "/lib/modules:/lib/modules:ro"
   - "{{ kolla_dev_repos_directory ~ '/manila/manila:/var/lib/kolla/venv/lib/python' ~ distro_python_version ~ '/site-packages/manila' if manila_dev_mode | bool else '' }}"
-  - "/etc/ganesha:/etc/ganesha:ro"
+  - "/etc/ganesha:/etc/ganesha"
 manila_scheduler_default_volumes:
   - "{{ node_config_directory }}/manila-scheduler/:{{ container_config_directory }}/:ro"
   - "/etc/localtime:/etc/localtime:ro"
