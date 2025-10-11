@@ -20,8 +20,9 @@ pushgateway_url = {{ kolla_internal_fqdn }}:19091
 chart_harbor_url = {{ chart_harbor_url }}
 chart_harbor_user = {{ chart_harbor_user }}
 chart_harbor_passwd = {{ chart_harbor_passwd  }}
-
-
+controller_password = {{ controller_password }}
+controller_nodes  = {{ controller_nodes }}
+nameservers = {{ nameservers }}
 
 [database]
 connection = mysql+pymysql://{{ dingo_command_database_user }}:{{ dingo_command_database_password }}@{{ dingo_command_database_address }}/dingoops?charset=utf8mb3
