@@ -535,6 +535,9 @@ manila_share_port: "2049"
 manila_share_public_port: "{{ manila_share_port }}"
 manila_share_listen_port: "2050"
 
+manila_export_store_pool_name: "ganesha-nfs-data"
+manila_export_object_name: "ganesha-export-index"
+
 mariadb_port: "{{ database_port }}"
 mariadb_wsrep_port: "4567"
 mariadb_ist_port: "4568"
