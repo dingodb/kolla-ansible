@@ -529,6 +529,12 @@ manila_api_port: "8786"
 manila_api_public_port: "{{ haproxy_single_external_frontend_public_port if haproxy_single_external_frontend | bool else manila_api_port }}"
 manila_api_listen_port: "{{ manila_api_port }}"
 
+manila_share_internal_fqdn: "{{ kolla_internal_fqdn }}"
+manila_share_external_fqdn: "{{ kolla_external_fqdn }}"
+manila_share_port: "2049"
+manila_share_public_port: "{{ manila_share_port }}"
+manila_share_listen_port: "2050"
+
 mariadb_port: "{{ database_port }}"
 mariadb_wsrep_port: "4567"
 mariadb_ist_port: "4568"
