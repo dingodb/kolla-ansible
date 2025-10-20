@@ -43,6 +43,20 @@ manila_services:
     volumes: "{{ manila_share_default_volumes + manila_share_extra_volumes + lookup('vars', 'run_default_volumes_' + kolla_container_engine) }}"
     dimensions: "{{ manila_share_dimensions }}"
     healthcheck: "{{ manila_share_healthcheck }}"
+    haproxy:
+      manila_share:
+        enabled: "{{ enable_manila and enable_manila_backend_nfs }}"
+        mode: "tcp"
+        external: false
+        port: "{{ manila_share_port }}"
+        listen_port: "{{ manila_share_listen_port }}"
+      manila_share_external:
+        enabled: "{{ enable_manila and enable_manila_backend_nfs }}"
+        mode: "tcp"
+        external: true
+        external_fqdn: "{{ manila_share_external_fqdn }}"
+        port: "{{ manila_share_public_port }}"
+        listen_port: "{{ manila_share_listen_port }}"
   manila-data:
     container_name: "manila_data"
     group: "manila-data"
@@ -52,7 +66,7 @@ manila_services:
     volumes: "{{ manila_data_default_volumes + manila_data_extra_volumes + lookup('vars', 'run_default_volumes_' + kolla_container_engine) }}"
     dimensions: "{{ manila_data_dimensions }}"
     healthcheck: "{{ manila_data_healthcheck }}"
-
+enable_manila_backend_nfs: True
 ####################
 # Config Validate
 ####################
@@ -168,6 +182,7 @@ manila_share_default_volumes:
   - "{{ '/dev/shm:/dev/shm' }}"
   - "/lib/modules:/lib/modules:ro"
   - "{{ kolla_dev_repos_directory ~ '/manila:/dev-mode/manila' if manila_dev_mode | bool else '' }}"
+  - "/etc/ganesha:/etc/ganesha"
 manila_scheduler_default_volumes:
   - "{{ node_config_directory }}/manila-scheduler/:{{ container_config_directory }}/:ro"
   - "/etc/localtime:/etc/localtime:ro"
