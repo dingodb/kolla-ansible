@@ -26,7 +26,7 @@ proc_name = "dingo-command"
 logconfig_dict = {
     "version": 1,
     "disable_existing_loggers": False,
-    "root": {"level": "DEBUG", "handlers": ["console"]},
+    "root": {"level": "INFO", "handlers": ["console"]},
     "loggers": {
         "gunicorn.error": {
             "level": "INFO",
@@ -45,6 +45,7 @@ logconfig_dict = {
         "error_file": {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "generic",
+            "level": "INFO",
             "filename": "/var/log/dingo-command/dingo-command-error.log",
         },
         "access_file": {
@@ -54,7 +55,7 @@ logconfig_dict = {
         },
         "console": {
             "class": "logging.StreamHandler",
-            "level": "DEBUG",
+            "level": "INFO",
             "formatter": "generic",
         },
     },
