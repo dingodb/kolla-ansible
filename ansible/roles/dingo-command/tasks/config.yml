@@ -57,7 +57,18 @@
     - dingo_command.enabled | bool
   notify:
     - Restart dingo-command container
-
+    
+- name: Write dingo_command_managek8s_config to management.kubeconfig
+  copy:
+    content: "{{ dingo_command_managek8s_config }}"
+    dest: "{{ node_config_directory }}/dingo-command/management.kubeconfig"
+    mode: "0660"
+  become: true
+  when:
+    - dingo_command_services['dingo-command'].enabled | bool
+    - dingo_command_managek8s_config is defined
+    - dingo_command_managek8s_config | length > 0
+    
 - name: Copying over gunicorn.py
   vars:
     dingo_command: "{{ dingo_command_services['dingo-command'] }}"
