@@ -111,3 +111,24 @@ robot_username={{ dingo_command_harbor_robot_username }}
 robot_token={{ dingo_command_harbor_robot_token }}
 verify_ssl={{ dingo_command_harbor_verify_ssl }}
 storage_limit={{ dingo_command_harbor_storage_limit }}
+
+[METRIC]
+write_dingo = true
+write_clickhouse = true
+
+[CLICKHOUSE]
+host = {{ aliyun_clickhouse_host }}
+port = {{ aliyun_clickhouse_port }}
+username = {{ aliyun_clickhouse_user }}
+password = {{ aliyun_clickhouse_password }}
+database = {{ aliyun_clickhouse_database }}
+
+[manila]
+auth_url = http://{{ kolla_internal_fqdn }}:5000/
+auth_type = password
+project_domain = Default
+user_domain = Default
+project_name = service
+user_name = {{ neutron_keystone_user }}
+password = {{ neutron_keystone_password }}
+region_name = RegionOne
