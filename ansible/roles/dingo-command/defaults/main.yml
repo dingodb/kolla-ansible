@@ -147,7 +147,7 @@ aliyun_dingodb_report_database: "bsm_monitor"
 # 默认使用本身的地址
 center_rpc_transport_url: "{{ rpc_transport_url }}"
 
-aliyun_clickhouse_host: "10.220.56.254"
+aliyun_clickhouse_host: "10.220.244.176"
 aliyun_clickhouse_port: 8123
 aliyun_clickhouse_user: "user01"
 aliyun_clickhouse_password: "YourStrongPassword123!"
