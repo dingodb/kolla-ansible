@@ -132,3 +132,13 @@ project_name = service
 user_name = {{ keystone_admin_user }}
 password = {{ keystone_admin_password }}
 region_name = RegionOne
+
+[keystone]
+auth_url = http://{{ kolla_internal_fqdn }}:5000/
+auth_type = password
+project_domain = Default
+user_domain = Default
+project_name = service
+user_name = {{ keystone_admin_user }}
+password = {{ keystone_admin_password }}
+region_name = RegionOne
