@@ -89,6 +89,9 @@ function gen_config {
 
     set_value ovs ovs_dpdk_multiqueue_num ${ovs_dpdk_multiqueue_num:-"8"}
     set_value ovs ovs_dpdk_queue_desc ${ovs_dpdk_queue_desc:-"4096"}
+    set_value ovn ovs_dpdk_ovn_enable ${ovs_dpdk_ovn_enable:-"no"}
+    set_value ovn ovs_dpdk_system_id ${ovs_dpdk_system_id:-""}
+
 
     ls -al /sys/class/net/* | awk '$0 ~ /pci/ {n=split($NF,a,"/"); print "\n[" a[n] "]\naddress = " a[n-2]  "\ndriver ="}' >> $CONFIG_FILE
 
@@ -237,6 +240,12 @@ function init_ovs_db {
     other_config:dpdk-socket-mem="$(get_value ovs ovs_socket_mem)" \
     other_config:dpdk-hugepage-dir="$(get_value ovs hugepage_mountpoint)"  \
     other_config:dpdk-extra=" --proc-type primary $(get_value ovs pci_whitelist) "
+
+    if [ "$(get_value ovn ovs_dpdk_ovn_enable)" == "yes" ]; then
+     ovs-vsctl --no-wait set Open_vSwitch . external_ids:ovn-bridge-datapath-type=netdev \
+     external_ids:system-id=$(get_value ovn ovs_dpdk_system_id)
+    fi
+
 }
 
 function init_ovs_bridges {
