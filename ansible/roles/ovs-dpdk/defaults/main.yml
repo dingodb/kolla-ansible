@@ -7,7 +7,7 @@ ovsdpdk_services:
   ovsdpdk-db:
     container_name: "ovsdpdk_db"
     image: "{{ ovsdpdk_db_image_full }}"
-    enabled: "{{ neutron_plugin_agent in ['openvswitch'] }}"
+    enabled: "{{ neutron_plugin_agent in ['openvswitch','ovn'] }}"
     host_in_groups: >-
       {{
       inventory_hostname in groups['compute']
@@ -21,7 +21,7 @@ ovsdpdk_services:
   ovsdpdk-vswitchd:
     container_name: "ovsdpdk_vswitchd"
     image: "{{ ovsdpdk_vswitchd_image_full }}"
-    enabled: "{{ neutron_plugin_agent in ['openvswitch'] }}"
+    enabled: "{{ neutron_plugin_agent in ['openvswitch','ovn'] }}"
     privileged: True
     host_in_groups: >-
       {{
@@ -62,6 +62,8 @@ ovs_dpdk_bond_list: "{{ dpdk_bond_list }}"
 ovs_dpdk_multiqueue_num: "{{ dpdk_multiqueue_num }}"
 ovs_dpdk_queue_desc: "{{ dpdk_queue_desc }}"
 
+ovs_dpdk_ovn_enable: "{{ dpdk_ovn_enable }}"
+ovs_dpdk_system_id: "{{ ansible_facts.hostname }}"
 
 # ovs <2.7 required dpdk phyical port names to be index
 # in pci address order as dpdkX where X is the index
