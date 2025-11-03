@@ -28,13 +28,13 @@ workaround_ansible_issue_8743: yes
 #dingo-command options
 ##################
 bigscreen_prometheus_query_url: "http://prometheus.zetyun.cn:80/api/v1/"
-aliyun_dingodb_host: "172.30.14.199"
-aliyun_dingodb_port: 3307
-aliyun_dingodb_user: "bsm_monitor"
-aliyun_dingodb_read_user: "bsm_operator"
-aliyun_dingodb_password: "bsm_monitor"
-aliyun_dingodb_read_password: "bsm_monitor"
-aliyun_dingodb_report_database: "bsm_monitor"
+#aliyun_dingodb_host: ""
+#aliyun_dingodb_port: 3307
+#aliyun_dingodb_user: ""
+#aliyun_dingodb_read_user: ""
+#aliyun_dingodb_password: ""
+#aliyun_dingodb_read_password: ""
+#aliyun_dingodb_report_database: ""
 
 ceph_keyring_content: "AQDGGBxo1+6EAxAAPtO87F7AtDfsmQVmVYLVbw=="
 dingo_command_ceph_fsid: "7e4c0eda-02e0-11ef-bedf-e4434b2ce110"
@@ -52,6 +52,11 @@ dingo_command_ceph_client_name: "dingoops-hdd-fs"
 dingo_command_ceph_mds_namespace: "dingoops-cephfs-hdd"
 dingo_command_ceph_mount_path: "/var/lib/dingo-command"
 dingo_command_ceph_fs_name: "/dingoops-test"
+
+#dingo_command_keystone_user: ""
+#dingo_command_keystone_password: ""
+
+#dingo_command_database_password: ""
 ##################
 
 
