@@ -74,8 +74,6 @@ dingo_command_listen_port: "{{ dingo_command_port }}"
 dingo_command_internal_base_endpoint: "{{ dingo_command_internal_fqdn | kolla_url(internal_protocol, dingo_command_port) }}"
 dingo_command_public_base_endpoint: "{{ dingo_command_external_fqdn | kolla_url(public_protocol, dingo_command_public_port) }}"
 
-dingo_command_keystone_user: dingo-command
-dingo_command_keystone_password: Zetyun.123
 dingo_command_ks_services:
   - name: "dingo-command"
     type: "panel"
@@ -96,7 +94,6 @@ dingo_command_ks_users:
 dingo_command_database_name: "dingoops"
 dingo_command_database_user: "{% if use_preconfigured_databases | bool and use_common_mariadb_user | bool %}{{ database_user }}{% else %}dingoops{% endif %}"
 dingo_command_database_address: "{{ database_address | put_address_in_context('url') }}:{{ database_port }}"
-dingo_command_database_password: Zetyun.123
 ####################
 # Database sharding
 ####################
@@ -135,14 +132,6 @@ dingo_command_ceph_fs_name: "/dingoops-test"
 
 task_timeout: 7500
 soft_task_timeout: 7200
-
-aliyun_dingodb_host: "172.30.14.199"
-aliyun_dingodb_port: 3307
-aliyun_dingodb_user: "bsm_monitor"
-aliyun_dingodb_read_user: "bsm_operator"
-aliyun_dingodb_password: "bsm_monitor"
-aliyun_dingodb_read_password: "bsm_monitor"
-aliyun_dingodb_report_database: "bsm_monitor"
 
 # 默认使用本身的地址
 center_rpc_transport_url: "{{ rpc_transport_url }}"
