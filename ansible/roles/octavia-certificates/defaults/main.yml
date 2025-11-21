@@ -35,7 +35,7 @@ octavia_certs_client_ca_organizational_unit: "{{ octavia_certs_organizational_un
 octavia_certs_client_ca_common_name: client-ca.example.org
 
 # Client certificate.
-octavia_certs_client_expiry: 365
+octavia_certs_client_expiry: 3650
 octavia_certs_client_req_country: "{{ octavia_certs_country }}"
 octavia_certs_client_req_state: "{{ octavia_certs_state }}"
 octavia_certs_client_req_organization: "{{ octavia_certs_organization }}"
