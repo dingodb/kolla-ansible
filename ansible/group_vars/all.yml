@@ -435,6 +435,7 @@ ironic_http_port: "8089"
 ironic_prometheus_exporter_port: "9608"
 
 iscsi_port: "3260"
+kafka_port: "9092"
 
 keystone_public_port: "{{ haproxy_single_external_frontend_public_port if haproxy_single_external_frontend | bool else keystone_public_listen_port }}"
 keystone_public_listen_port: "5000"
@@ -694,6 +695,10 @@ watcher_api_port: "9322"
 watcher_api_public_port: "{{ haproxy_single_external_frontend_public_port if haproxy_single_external_frontend | bool else watcher_api_port }}"
 watcher_api_listen_port: "{{ watcher_api_port }}"
 
+zookeeper_client_port: "2181"
+zookeeper_peer_port: "2888"
+zookeeper_quorum_port: "3888"
+
 zun_api_port: "9517"
 zun_api_public_port: "{{ haproxy_single_external_frontend_public_port if haproxy_single_external_frontend | bool else zun_api_port }}"
 zun_api_listen_port: "{{ zun_api_port }}"
@@ -848,6 +853,7 @@ enable_ironic_neutron_agent: "{{ enable_neutron | bool and enable_ironic | bool 
 enable_ironic_pxe_uefi: "no"
 enable_ironic_prometheus_exporter: "{{ enable_ironic | bool and enable_prometheus | bool }}"
 enable_iscsid: "{{ enable_cinder | bool and enable_cinder_backend_iscsi | bool }}"
+enable_kafka: "no"
 enable_kuryr: "no"
 enable_letsencrypt: "no"
 enable_magnum: "no"
@@ -910,6 +916,7 @@ enable_trove_singletenant: "no"
 enable_venus: "no"
 enable_vitrage: "no"
 enable_watcher: "no"
+enable_zookeeper: "no"
 enable_zun: "no"
 
 ovs_datapath: "{{ 'netdev' if enable_ovs_dpdk | bool else 'system' }}"
@@ -1339,6 +1346,17 @@ influxdb_address: "{{ kolla_internal_fqdn }}"
 influxdb_datadir_volume: "influxdb"
 
 influxdb_internal_endpoint: "{{ kolla_internal_fqdn | kolla_url(internal_protocol, influxdb_http_port) }}"
+
+
+#################
+# Kafka options
+#################
+kafka_datadir_volume: "kafka"
+
+# The number of brokers in a Kafka cluster. This is used for automatically
+# setting quantities such as topic replicas and it is not recommended to
+# change it unless you know what you are doing.
+kafka_broker_count: "{{ groups['kafka'] | length }}"
 
 #########################
 # Internal Image options
