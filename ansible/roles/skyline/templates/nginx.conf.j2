@@ -150,7 +150,7 @@ http {
         {% endif %}
 
         {% if enable_placement | bool %}# Region: {{ openstack_region_name }}, Service: placement
-        location {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/placement {
+        location {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/placement/ {
             proxy_pass {{ internal_protocol }}://{{ placement_internal_fqdn | put_address_in_context('url') }}:{{ placement_api_port }}/;
             proxy_redirect {{ internal_protocol }}://{{ placement_internal_fqdn | put_address_in_context('url') }}:{{ placement_api_port }}/ {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/placement/;
             proxy_buffering off;
@@ -265,6 +265,10 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_set_header X-Forwarded-Host $host;
             proxy_set_header Host $http_host;
+
+            proxy_connect_timeout 600s;    # 后端连接超时时间
+            proxy_send_timeout 600s;       # 向后端发送请求超时时间
+            proxy_read_timeout 600s;       # 从后端读取响应超时时间
         }
         # 处理 WebSocket 请求
         location /ws_dingo-command/regionone/v1 {
@@ -279,6 +283,19 @@ http {
         }
         {% endif %}
 
+        {% if enable_cloudkitty | bool %}# Region: {{ openstack_region_name }}, Service: cloudkitty
+        location {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/cloudkitty {
+            proxy_pass {{ internal_protocol }}://{{ cloudkitty_internal_fqdn | put_address_in_context('url') }}:{{ cloudkitty_api_port }}/;
+            proxy_redirect {{ internal_protocol }}://{{ cloudkitty_internal_fqdn | put_address_in_context('url') }}:{{ cloudkitty_api_port }}/ {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/cloudkitty/;
+            proxy_buffering off;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header Host $http_host;
+            proxy_set_header Accept application/json;
+        }
+        {% endif %}
+        
         {% if enable_barbican | bool %}# Region: {{ openstack_region_name }}, Service: barbican
         location {{ skyline_nginx_prefix }}/{{ openstack_region_name | lower }}/barbican {
             proxy_pass {{ internal_protocol }}://{{ kolla_internal_fqdn | put_address_in_context('url') }}:{{ barbican_api_port }}/;
