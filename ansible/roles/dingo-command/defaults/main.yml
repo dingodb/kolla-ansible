@@ -141,3 +141,6 @@ aliyun_clickhouse_port: 8123
 aliyun_clickhouse_user: "user01"
 aliyun_clickhouse_password: "YourStrongPassword123!"
 aliyun_clickhouse_database: "bsm_monitor"
+
+metric_write_dingo: true
+metric_write_clickhouse: true
