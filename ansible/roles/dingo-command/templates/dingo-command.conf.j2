@@ -26,6 +26,9 @@ controller_nodes  = {{ controller_nodes }}
 nameservers = {{ nameservers }}
 kubeconfig_path = /etc/dingo-command/management.kubeconfig
 datastore = {{ dingo_command_datastore }}
+consul_address = {{ consul_address }}
+consul_token = {{ consul_token }}
+region_name =  {{ dingo_command_region_name }}
 
 [database]
 connection = mysql+pymysql://{{ dingo_command_database_user }}:{{ dingo_command_database_password }}@{{ dingo_command_database_address }}/dingoops?charset=utf8mb3
