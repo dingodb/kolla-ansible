@@ -29,6 +29,7 @@ datastore = {{ dingo_command_datastore }}
 consul_address = {{ consul_address }}
 consul_token = {{ consul_token }}
 region_name =  {{ dingo_command_region_name }}
+prometheus_url = {{ prometheus_url }}
 
 [database]
 connection = mysql+pymysql://{{ dingo_command_database_user }}:{{ dingo_command_database_password }}@{{ dingo_command_database_address }}/dingoops?charset=utf8mb3
@@ -154,12 +155,26 @@ url = {{ dingo_command_cephfs_url }}
 vol_name = {{ dingo_command_cephfs_vol_name }}
 user_name = {{ dingo_command_cephfs_user_name }}
 password = {{ dingo_command_cephfs_password }}
+admin_username= {{  dingo_command_cephfs_admin_username }}
+admin_password= {{ dingo_command_cephfs_admin_password }}
+ssh_host={{ dingo_command_cephfs_ssh_host }}
+ssh_user={{ dingo_command_cephfs_ssh_user }}
+ssh_password={{ dingo_command_cephfs_ssh_password }}
+ssh_port={{ dingo_command_cephfs_ssh_port }}
+file_system_name={{ dingo_command_cephfs_file_system_name }}
+file_limit = {{ dingo_command_cephfs_file_limit }}
+mount_host={{ dingo_command_cephfs_mount_host }}
+group_name={{ dingo_command_cephfs_group_name }}
+
 
 [gpfs]
 url = {{ dingo_command_gpfs_url }}
 user_name = {{ dingo_command_gpfs_user_name }}
 password = {{ dingo_command_gpfs_password }}
 file_system_name = {{ dingo_command_gpfs_file_system_name }}
+baremetal_filesystem_name = {{ dingo_command_gpfs_baremetal_filesystem_name }}
+file_limit = {{ dingo_command_gpfs_file_limit }}
+mount_host = {{ dingo_command_gpfs_mount_host }}
 
 [kafka]
 kafka_broker_list = {{ kafka_broker_list }}
