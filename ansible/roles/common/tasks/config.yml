@@ -160,9 +160,9 @@
       - name: "conf/input/05-libvirt.conf.j2"
         enabled: "{{ enable_nova | bool and enable_nova_libvirt_container | bool }}"
       - name: "conf/input/06-zookeeper.conf.j2"
-        enabled: true
+        enabled: false
       - name: "conf/input/07-kafka.conf.j2"
-        enabled: true
+        enabled: false
       - name: "conf/input/08-prometheus.conf.j2"
         enabled: "{{ enable_prometheus_fluentd_integration | bool }}"
       - name: "conf/input/10-openvswitch.conf.j2"
