@@ -30,6 +30,8 @@ consul_address = {{ consul_address }}
 consul_token = {{ consul_token }}
 region_name =  {{ dingo_command_region_name }}
 prometheus_url = {{ prometheus_url }}
+openstack_lb_provider = {{ openstack_lb_provider }}
+openstack_lb_method = {{ openstack_lb_method }}
 
 [database]
 connection = mysql+pymysql://{{ dingo_command_database_user }}:{{ dingo_command_database_password }}@{{ dingo_command_database_address }}/dingoops?charset=utf8mb3
