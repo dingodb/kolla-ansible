@@ -311,6 +311,11 @@ manila_ks_users:
     password: "{{ manila_keystone_password }}"
     role: "admin"
 
+manila_ks_user_roles:
+  - project: "service"
+    user: "admin"
+    role: "admin"
+
 
 ####################
 # CephFS
