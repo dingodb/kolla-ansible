@@ -32,6 +32,9 @@ region_name =  {{ dingo_command_region_name }}
 prometheus_url = {{ prometheus_url }}
 openstack_lb_provider = {{ openstack_lb_provider }}
 openstack_lb_method = {{ openstack_lb_method }}
+maas_base_url = {{ maas_base_url }}
+maas_api_key = {{ maas_api_key }}
+maas_llm_url = {{ maas_llm_url }}
 
 [database]
 connection = mysql+pymysql://{{ dingo_command_database_user }}:{{ dingo_command_database_password }}@{{ dingo_command_database_address }}/dingoops?charset=utf8mb3
@@ -180,3 +183,13 @@ mount_host = {{ dingo_command_gpfs_mount_host }}
 
 [kafka]
 kafka_broker_list = {{ kafka_broker_list }}
+
+[openclaw]
+image_id = {{ openclaw_openstack_image_id }}
+project_id = {{ openclaw_openstack_project_id }}
+user_id = {{ openclaw_openstack_user_id }}
+password = {{ openclaw_openstack_password }}
+security_group_id = {{ openclaw_openstack_security_group_id }}
+netowrk_id = {{ openclaw_openstack_network_id }}
+subnet_id = {{ openclaw_openstack_subnet_id }}
+ssh_user = {{ openclaw_ssh_user }}
