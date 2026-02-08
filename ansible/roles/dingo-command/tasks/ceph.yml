@@ -74,3 +74,4 @@
       -o name={{ dingo_command_ceph_client_name }},secretfile=/etc/ceph/ceph.client.{{ dingo_command_ceph_client_name }}.keyring,acl,noatime,_netdev,mds_namespace={{ dingo_command_ceph_mds_namespace }}
   when: ceph_mount_status.stdout == ""
   with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
+  when: kolla_action != "upgrade"
