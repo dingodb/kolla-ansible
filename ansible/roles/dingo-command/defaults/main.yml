@@ -146,3 +146,43 @@ metric_write_dingo: true
 metric_write_clickhouse: true
 openstack_lb_method: "ROUND_ROBIN"
 openstack_lb_provider: "amphora"
+
+dingo_bear_tag: "{{ openstack_tag }}"
+dingo_bear_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/dingo-bear"
+dingo_bear_image_full: "{{ dingo_bear_image }}:{{ dingo_bear_tag }}"
+
+
+
+dingo_bear_port: 38887
+dingo_bear_listen_port: "{{ dingo_bear_port }}"
+dingo_bear_enable_tls_backend: "{{ kolla_enable_tls_backend }}"
+dingo_bear_external_fqdn: "{{ dingo_command_external_fqdn }}"
+dingo_bear_services:
+  dingo-bear:
+    container_name: dingo-bear
+    group: dingo-bear
+    enabled: true
+    image: "{{ dingo_bear_image_full }}"
+    volumes: "{{ dingo_bear_default_volumes + dingo_bear_extra_volumes }}"
+    dimensions: "{{ dingo_bear_dimensions }}"
+    healthcheck: "{{ dingo_bear_healthcheck }}"
+    haproxy:
+      dingo-bear:
+        enabled: "{{ enable_dingo_bear }}"
+        mode: "http"
+        external: false
+        port: "{{ dingo_bear_port }}"
+        listen_port: "{{ dingo_bear_listen_port }}"
+        tls_backend: "{{ dingo_bear_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+      dingo_bear_external:
+        enabled: "{{ enable_dingo_bear }}"
+        mode: "http"
+        external: true
+        external_fqdn: "{{ dingo_bear_external_fqdn }}"
+        port: "{{ dingo_bear_port }}"
+        listen_port: "{{ dingo_bear_listen_port }}"
+        tls_backend: "{{ dingo_bear_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"

@@ -1,0 +1,195 @@
+[DEFAULT]
+# region名称 黄海是RegionOne 其他环境按照部署长上去
+region_name = {{ dingo_command_region_name }}
+aidc_name = {{ dingo_command_aidc_name }}
+# 是否是中心region的标志 黄海是True 其他是False
+center_region_flag = {{ dingo_command_center_region_flag }}
+cluster_work_dir = /var/lib/dingo-command
+my_ip = {{ api_interface_address }}
+vip = {{ kolla_internal_fqdn }}
+transport_url = {{ rpc_transport_url }}
+# 中心region的mq地址，从黄海那边拿transport_url，如果是独立部署的不需要赋值
+center_transport_url = {{ center_rpc_transport_url }}
+auth_url  = http://{{ kolla_internal_fqdn }}:5000
+harbor_url = {{ harbor_url }}
+fileserver_url = {{ fileserver_url }}
+k8s_master_image = {{ k8s_master_image }}
+k8s_master_flavor = {{ k8s_master_flavor }}
+task_timeout = {{ task_timeout }}
+soft_task_timeout = {{ soft_task_timeout }}
+pushgateway_url = {{ kolla_internal_fqdn }}:19091
+chart_harbor_url = {{ chart_harbor_url }}
+chart_harbor_user = {{ chart_harbor_user }}
+chart_harbor_passwd = {{ chart_harbor_passwd  }}
+controller_password = {{ controller_password }}
+controller_nodes  = {{ controller_nodes }}
+nameservers = {{ nameservers }}
+kubeconfig_path = /etc/dingo-command/management.kubeconfig
+datastore = {{ dingo_command_datastore }}
+consul_address = {{ consul_address }}
+consul_token = {{ consul_token }}
+region_name =  {{ dingo_command_region_name }}
+prometheus_url = {{ prometheus_url }}
+openstack_lb_provider = {{ openstack_lb_provider }}
+openstack_lb_method = {{ openstack_lb_method }}
+maas_base_url = {{ maas_base_url }}
+maas_api_key = {{ maas_api_key }}
+maas_llm_url = {{ maas_llm_url }}
+
+[database]
+connection = mysql+pymysql://{{ dingo_command_database_user }}:{{ dingo_command_database_password }}@{{ dingo_command_database_address }}/dingoops?charset=utf8mb3
+
+
+[bigscreen]
+prometheus_query_url = {{ bigscreen_prometheus_query_url }}
+metrics_fetch_interval = 1800
+metrics_expiration_time = 3600
+memcached_address = {{ api_interface_address }}:11211
+memcached_key_prefix = bigscreen_metrics_
+
+[redis]
+redis_ip = {{ api_interface_address }}
+redis_port = 6379
+redis_password = {{ redis_master_password }}
+sentinel_url = "sentinel://{% for host in groups['redis'] %}{% if host == groups['redis'][0] %}:{{ redis_master_password }}@{{ 'api' | kolla_address(host) | put_address_in_context('url') }}:{{ redis_sentinel_port }}{% else %};sentinel://:{{ redis_master_password }}@{{ 'api' | kolla_address(host) | put_address_in_context('url') }}:{{ redis_sentinel_port }}{% endif %}{% endfor %}"
+
+
+[ironic]
+auth_url = http://{{ kolla_internal_fqdn }}:5000/
+auth_type = password
+project_domain = Default
+user_domain = Default
+project_name = service
+user_name = {{ ironic_keystone_user }}
+password = {{ ironic_keystone_password }}
+region_name = RegionOne
+
+[nova]
+auth_url = http://{{ kolla_internal_fqdn }}:5000/
+auth_type = password
+project_domain = Default
+user_domain = Default
+project_name = service
+user_name = {{ nova_keystone_user }}
+password = {{ nova_keystone_password }}
+region_name = RegionOne
+
+[neutron]
+metadata_proxy_shared_secret = {{ metadata_secret }}
+service_metadata_proxy = true
+auth_url = {{ keystone_internal_url }}
+auth_type = password
+project_domain_name = {{ default_project_domain_name }}
+user_domain_id = {{ default_user_domain_id }}
+project_name = service
+username = {{ neutron_keystone_user }}
+password = {{ neutron_keystone_password }}
+region_name = {{ openstack_region_name }}
+valid_interfaces = internal
+cafile = {{ openstack_cacert }}
+
+[cloudkitty]
+auth_url = http://{{ kolla_internal_fqdn }}:5000
+auth_type = password
+project_domain = {{ default_project_domain_name }}
+user_domain = {{ default_project_domain_name }}
+project_name = service
+username = "cloudkitty"
+password = {{ cloudkitty_keystone_password }}
+region_name = {{ openstack_region_name }}
+
+[aliyun_dingodb]
+host = {{ aliyun_dingodb_host }}
+port = {{ aliyun_dingodb_port }}
+user = {{ aliyun_dingodb_user }}
+read_user = {{ aliyun_dingodb_read_user }}
+password = {{ aliyun_dingodb_password }}
+read_password = {{ aliyun_dingodb_read_password }}
+report_database =  {{ aliyun_dingodb_report_database }}
+
+[cinder]
+auth_url = http://{{ kolla_internal_fqdn }}:5000/
+auth_type = password
+project_domain = Default
+user_domain = Default
+project_name = service
+user_name = {{ cinder_keystone_user }}
+password =  {{ cinder_keystone_password }}
+region_name = {{ openstack_region_name }}
+
+[harbor]
+base_url={{ dingo_command_harbor_url }}
+robot_username={{ dingo_command_harbor_robot_username }}
+robot_token={{ dingo_command_harbor_robot_token }}
+verify_ssl={{ dingo_command_harbor_verify_ssl }}
+storage_limit={{ dingo_command_harbor_storage_limit }}
+
+[METRIC]
+write_dingo = {{ metric_write_dingo }}
+write_clickhouse = {{ metric_write_clickhouse }}
+
+[CLICKHOUSE]
+host = {{ aliyun_clickhouse_host }}
+port = {{ aliyun_clickhouse_port }}
+username = {{ aliyun_clickhouse_user }}
+password = {{ aliyun_clickhouse_password }}
+database = {{ aliyun_clickhouse_database }}
+
+[manila]
+auth_url = http://{{ kolla_internal_fqdn }}:5000/
+auth_type = password
+project_domain = Default
+user_domain = Default
+project_name = service
+user_name = {{ keystone_admin_user }}
+password = {{ keystone_admin_password }}
+region_name = RegionOne
+
+[keystone]
+auth_url = http://{{ kolla_internal_fqdn }}:5000/
+auth_type = password
+project_domain = Default
+user_domain = Default
+project_name = service
+user_name = {{ keystone_alayanew_admin_user }}
+password = {{ keystone_alayanew_admin_password }}
+region_name = RegionOne
+
+[cephfs]
+url = {{ dingo_command_cephfs_url }}
+vol_name = {{ dingo_command_cephfs_vol_name }}
+user_name = {{ dingo_command_cephfs_user_name }}
+password = {{ dingo_command_cephfs_password }}
+admin_username= {{  dingo_command_cephfs_admin_username }}
+admin_password= {{ dingo_command_cephfs_admin_password }}
+ssh_host={{ dingo_command_cephfs_ssh_host }}
+ssh_user={{ dingo_command_cephfs_ssh_user }}
+ssh_password={{ dingo_command_cephfs_ssh_password }}
+ssh_port={{ dingo_command_cephfs_ssh_port }}
+file_system_name={{ dingo_command_cephfs_file_system_name }}
+file_limit = {{ dingo_command_cephfs_file_limit }}
+mount_host={{ dingo_command_cephfs_mount_host }}
+group_name={{ dingo_command_cephfs_group_name }}
+
+
+[gpfs]
+url = {{ dingo_command_gpfs_url }}
+user_name = {{ dingo_command_gpfs_user_name }}
+password = {{ dingo_command_gpfs_password }}
+file_system_name = {{ dingo_command_gpfs_file_system_name }}
+baremetal_filesystem_name = {{ dingo_command_gpfs_baremetal_filesystem_name }}
+file_limit = {{ dingo_command_gpfs_file_limit }}
+mount_host = {{ dingo_command_gpfs_mount_host }}
+
+[kafka]
+kafka_broker_list = {{ kafka_broker_list }}
+
+[openclaw]
+image_id = {{ openclaw_openstack_image_id }}
+project_id = {{ openclaw_openstack_project_id }}
+user_id = {{ openclaw_openstack_user_id }}
+password = {{ openclaw_openstack_password }}
+security_group_id = {{ openclaw_openstack_security_group_id }}
+netowrk_id = {{ openclaw_openstack_network_id }}
+subnet_id = {{ openclaw_openstack_subnet_id }}
+ssh_user = {{ openclaw_ssh_user }}
