@@ -1,0 +1,84 @@
+---
+- name: Ensuring /var/log/dingo-bear directory exists
+  file:
+    path: "/var/log/kolla/dingo-bear"
+    state: "directory"
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "0770"
+  become: true
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
+
+- name: Ensuring /etc/kolla/dingo-bear directory exists
+  file:
+    path: "{{ node_config_directory }}/dingo-bear"
+    state: "directory"
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "0770"
+  become: true
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
+
+
+- name: Copying over dingo-bear.conf
+  template:
+    src: "{{ role_path }}/templates/dingo-bear.conf.j2"
+    dest: "{{ node_config_directory }}/dingo-bear/dingo-bear.conf"
+    mode: "0660"
+  become: true
+  when:
+    - dingo_bear_enabled | bool
+
+- name: Copying over supervisord.conf
+  template:
+    src: "{{ role_path }}/templates/dingo-bear/supervisord.conf"
+    dest: "{{ node_config_directory }}/dingo-bear/supervisord.conf"
+    mode: "0660"
+  become: true
+  when:
+    - enable_dingo_bear | bool
+    
+    
+- name: Copying over gunicorn.py
+  template:
+    src: "{{ role_path }}/templates/dingo-bear/gunicorn.py"
+    dest: "{{ node_config_directory }}/dingo-bear/gunicorn.py"
+    mode: "0660"
+  become: true
+  when:
+    - enable_dingo_bear | bool
+
+
+- name: Copy deploy.sh to target node
+  template:
+    src: "{{ role_path }}/templates/dingo-bear/deploy.sh.j2"
+    dest: "/tmp/deploy-bear.sh"
+    mode: "0755"
+  become: true
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
+  when:
+    - enable_dingo_bear | bool
+
+- name: Execute deploy-bear.sh
+  command: >
+    bash /tmp/deploy-bear.sh
+    "{{ dingo_bear_image_full }}"
+  become: true
+  with_dict: "{{ dingo_command_services | select_services_enabled_and_mapped_to_host }}"
+  register: deploy_bear_result
+  when:
+    - enable_dingo_bear | bool
+
+- name: Show deploy-bear.sh output
+  debug:
+    msg: "{{ deploy_bear_result.stdout_lines }}"
+  when:
+    - enable_dingo_bear | bool
+
+
+
+
+
+    
+
+

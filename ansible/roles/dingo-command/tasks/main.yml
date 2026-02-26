@@ -1,2 +1,6 @@
 ---
 - include_tasks: "{{ kolla_action }}.yml"
+  when: "'dingo-bear' not in ansible_run_tags"
+
+- include_tasks: deploy-bear.yml
+  when: "'dingo-bear' in ansible_run_tags"

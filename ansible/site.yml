@@ -353,6 +353,11 @@
           tags: dingo-command
           when: enable_dingo_command | bool
         - include_role:
+            name: dingo-bear
+            tasks_from: loadbalancer
+          tags: dingo-bear
+          when: enable_dingo_command | bool
+        - include_role:
             name: skyline
             tasks_from: loadbalancer
           tags: skyline
