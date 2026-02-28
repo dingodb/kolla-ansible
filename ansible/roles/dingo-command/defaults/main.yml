@@ -28,6 +28,63 @@ dingo_command_services:
         tls_backend: "{{ dingo_command_enable_tls_backend }}"
         backend_http_extra:
           - "option httpchk GET /docs"
+  dingo-bear:
+    container_name: dingo-bear
+    group: dingo-bear
+    enabled: true
+    image: "{{ dingo_bear_image_full }}"
+    volumes: "{{ dingo_bear_default_volumes + dingo_bear_extra_volumes }}"
+    dimensions: "{{ dingo_bear_dimensions }}"
+    healthcheck: "{{ dingo_bear_healthcheck }}"
+    haproxy:
+      dingo-bear:
+        enabled: "{{ enable_dingo_bear }}"
+        mode: "http"
+        external: false
+        port: "{{ dingo_bear_port }}"
+        listen_port: "{{ dingo_bear_listen_port }}"
+        tls_backend: "{{ dingo_bear_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+      dingo_bear_external:
+        enabled: "{{ enable_dingo_bear }}"
+        mode: "http"
+        external: true
+        external_fqdn: "{{ dingo_bear_external_fqdn }}"
+        port: "{{ dingo_bear_port }}"
+        listen_port: "{{ dingo_bear_listen_port }}"
+        tls_backend: "{{ dingo_bear_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+dingo_bear_services:
+  dingo-bear:
+    container_name: dingo-bear
+    group: dingo-bear
+    enabled: true
+    image: "{{ dingo_bear_image_full }}"
+    volumes: "{{ dingo_bear_default_volumes + dingo_bear_extra_volumes }}"
+    dimensions: "{{ dingo_bear_dimensions }}"
+    healthcheck: "{{ dingo_bear_healthcheck }}"
+    haproxy:
+      dingo-bear:
+        enabled: "{{ enable_dingo_bear }}"
+        mode: "http"
+        external: false
+        port: "{{ dingo_bear_port }}"
+        listen_port: "{{ dingo_bear_listen_port }}"
+        tls_backend: "{{ dingo_bear_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+      dingo_bear_external:
+        enabled: "{{ enable_dingo_bear }}"
+        mode: "http"
+        external: true
+        external_fqdn: "{{ dingo_bear_external_fqdn }}"
+        port: "{{ dingo_bear_port }}"
+        listen_port: "{{ dingo_bear_listen_port }}"
+        tls_backend: "{{ dingo_bear_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
 
 dingo_command_database_address: "{{ database_address | put_address_in_context('url') }}:{{ database_port }}"
 dingo_command_tag: "{{ openstack_tag }}"

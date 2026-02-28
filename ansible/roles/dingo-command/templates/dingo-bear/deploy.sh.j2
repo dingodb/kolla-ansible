@@ -1,11 +1,13 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 image_full_url=${1:-"docker.io/dongshany"}
 node_port=38887
 module_name=dingo-bear
 
 echo "拉取最新的镜像"
-podman pull ${image_full_url}
+#podman pull ${image_full_url}
 echo "开始检查并移除旧的容器"
 if [[ -n "$(podman ps -f "name=${module_name}$" -f "status=running" -q )" ]]; then
   printf "停止容器: "
@@ -30,7 +32,7 @@ if [[ ! -d "/var/lib/dingo-command" ]]; then
 fi
 
 docker_command="podman run -d -p ${node_port}:${node_port}"
-docker_command="${docker_command} -v /etc/dingo-bear/:/etc/dingo-bear/:ro"
+docker_command="${docker_command} -v /etc/kolla/dingo-bear/:/etc/dingo-bear/:ro"
 docker_command="${docker_command} -v /etc/localtime:/etc/localtime:ro"
 docker_command="${docker_command} -v /var/log/kolla/dingo-bear/:/var/log/dingo-bear/"
 docker_command="${docker_command} --mount type=bind,source=/run/netns,target=/run/netns,bind-propagation=shared"
@@ -41,7 +43,7 @@ docker_command="${docker_command} --health-interval=30s"
 docker_command="${docker_command} --health-timeout=10s"
 docker_command="${docker_command} --health-retries=3"
 docker_command="${docker_command} --health-start-period=30s"
-docker_command="${docker_command} --name ${module_name} ${harbor_url}/${module_name}:${image_version}"
+docker_command="${docker_command} --name ${module_name} ${image_full_url}"
 
 
 

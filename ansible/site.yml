@@ -1146,3 +1146,12 @@
   roles:
     - { role: dingo-command,
         tags: dingo-command }
+
+- name: Apply role dingo-command
+  gather_facts: false
+  hosts:
+    - dingo-command
+  serial: '{{ kolla_serial|default("0") }}'
+  roles:
+    - { role: dingo-command,
+        tags: dingo-bear }
