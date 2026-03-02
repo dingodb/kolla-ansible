@@ -46,12 +46,12 @@ logconfig_dict = {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "generic",
             "level": "INFO",
-            "filename": "/var/log/dingo-bear/dingo-bear/-error.log",
+            "filename": "/var/log/dingo-bear/dingo-bear-error.log",
         },
         "access_file": {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "generic",
-            "filename": "/var/log/dingo-bear/dingo-bear/-access.log",
+            "filename": "/var/log/dingo-bear/dingo-bear-access.log",
         },
         "console": {
             "class": "logging.StreamHandler",
