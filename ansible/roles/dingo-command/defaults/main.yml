@@ -209,7 +209,9 @@ dingo_bear_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ dock
 dingo_bear_image_full: "{{ dingo_bear_image }}:{{ dingo_bear_tag }}"
 
 
-
+dingo_bear_database_user: "{{ dingo_command_database_user }}"
+dingo_bear_database_password: "{{ dingo_command_database_password }}"
+dingo_bear_database_name: "dingo-bear"
 dingo_bear_port: 38887
 dingo_bear_listen_port: "{{ dingo_bear_port }}"
 dingo_bear_enable_tls_backend: "{{ kolla_enable_tls_backend }}"
