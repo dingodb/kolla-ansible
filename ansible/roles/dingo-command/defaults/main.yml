@@ -186,7 +186,9 @@ dingo_bear_database_user: "{{ dingo_command_database_user }}"
 dingo_bear_database_password: "{{ dingo_command_database_password }}"
 dingo_bear_database_name: "dingo-bear"
 dingo_bear_port: 38887
+dingo_bear_frontend_port: 30000
 dingo_bear_listen_port: "{{ dingo_bear_port }}"
+dingo_bear_skyline_url: "http://{{ kolla_internal_vip_address }}:9999"
 dingo_bear_enable_tls_backend: "{{ kolla_enable_tls_backend }}"
 dingo_bear_external_fqdn: "{{ dingo_command_external_fqdn }}"
 dingo_bear_services:

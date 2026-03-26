@@ -15,6 +15,7 @@
 import multiprocessing
 import os
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
 bind = "0.0.0.0:38887"
 workers = 4
 worker_class = "uvicorn.workers.UvicornWorker"
@@ -23,36 +24,21 @@ keepalive = 5
 reuse_port = True
 proc_name = "dingo-command"
 
+# Use gunicorn native log file settings instead of logconfig_dict file handlers,
+# which are unreliable with RotatingFileHandler in gunicorn's worker model.
+accesslog = "/var/log/dingo-bear/dingo-bear-access.log"
+errorlog = "/var/log/dingo-bear/dingo-bear-error.log"
+loglevel = "info"
+
 logconfig_dict = {
     "version": 1,
     "disable_existing_loggers": False,
     "root": {"level": "INFO", "handlers": ["console"]},
     "loggers": {
-        "gunicorn.error": {
-            "level": "INFO",
-            "handlers": ["error_file"],
-            "propagate": 0,
-            "qualname": "gunicorn_error",
-        },
-        "gunicorn.access": {
-            "level": "INFO",
-            "handlers": ["access_file"],
-            "propagate": 0,
-            "qualname": "access",
-        },
+        "gunicorn.error": {"level": "INFO", "handlers": ["console"], "propagate": 0},
+        "gunicorn.access": {"level": "INFO", "handlers": ["console"], "propagate": 0},
     },
     "handlers": {
-        "error_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "formatter": "generic",
-            "level": "INFO",
-            "filename": "/var/log/dingo-bear/dingo-bear-error.log",
-        },
-        "access_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "formatter": "generic",
-            "filename": "/var/log/dingo-bear/dingo-bear-access.log",
-        },
         "console": {
             "class": "logging.StreamHandler",
             "level": "INFO",
