@@ -4,56 +4,52 @@ set -o pipefail
 
 image_full_url=${1:-"docker.io/dongshany"}
 node_port=38887
+frontend_port=30000
 module_name=dingo-bear
+skyline_url="{{ dingo_bear_skyline_url }}"
 
-echo "拉取最新的镜像"
-#podman pull ${image_full_url}
 echo "开始检查并移除旧的容器"
-if [[ -n "$(podman ps -f "name=${module_name}$" -f "status=running" -q )" ]]; then
+if podman ps -f "name=${module_name}$" -f "status=running" -q | grep -q .; then
   printf "停止容器: "
-  podman stop $module_name
+  podman stop "${module_name}"
 fi
 
-# 若容器存在，则删除
-if [[ -n "$(podman ps -a -f "name=${module_name}$"  -q )" ]]; then
+if podman ps -a -f "name=${module_name}$" -q | grep -q .; then
   printf "删除容器: "
-  podman rm $module_name
+  podman rm "${module_name}"
 fi
 
-# 判断是否存在相关目录，没有则创建
-if [[ ! -d "/etc/kolla/dingo-bear" ]]; then
-  mkdir -p /etc/kolla/dingo-bear
-fi
-if [[ ! -d "/var/log/kolla/dingo-bear" ]]; then
-  mkdir -p /var/log/kolla/dingo-bear
-fi
-if [[ ! -d "/var/lib/dingo-command" ]]; then
-  mkdir -p /var/lib/dingo-command
-fi
+# 确保必要目录存在
+mkdir -p /etc/kolla/dingo-bear /var/log/kolla/dingo-bear /var/lib/dingo-command
 
-docker_command="podman run -d -p ${node_port}:${node_port}"
-docker_command="${docker_command} -v /etc/kolla/dingo-bear/:/etc/dingo-bear/:ro"
-docker_command="${docker_command} -v /etc/localtime:/etc/localtime:ro"
-docker_command="${docker_command} -v /var/log/kolla/dingo-bear/:/var/log/dingo-bear/"
-docker_command="${docker_command} --mount type=bind,source=/run/netns,target=/run/netns,bind-propagation=shared"
-docker_command="${docker_command} -v /var/lib/dingo-command/:/var/lib/dingo-command/"
-docker_command="${docker_command} -e TZ=Asia/Shanghai"
-docker_command="${docker_command} --health-cmd='curl -sf http://localhost:38887/v1 || exit 1'"
-docker_command="${docker_command} --health-interval=30s"
-docker_command="${docker_command} --health-timeout=10s"
-docker_command="${docker_command} --health-retries=3"
-docker_command="${docker_command} --health-start-period=30s"
-docker_command="${docker_command} --name ${module_name} ${image_full_url}"
+# 构建运行命令（使用数组避免 eval）
+run_args=(
+  run -d
+  --privileged
+  -p "${node_port}:${node_port}"
+  -p "${frontend_port}:${frontend_port}"
+  -e "SKYLINE_URL=${skyline_url}"
+  -v /etc/kolla/dingo-bear/:/etc/dingo-bear/:ro
+  -v /etc/localtime:/etc/localtime:ro
+  -v /var/log/kolla/dingo-bear/:/var/log/dingo-bear/
+  --mount type=bind,source=/run/netns,target=/run/netns,bind-propagation=shared
+  -v /var/lib/dingo-command/:/var/lib/dingo-command/
+  -e TZ=Asia/Shanghai
+  --health-cmd 'curl -sf http://localhost:38887/v1 || exit 1'
+  --health-interval=30s
+  --health-timeout=10s
+  --health-retries=3
+  --health-start-period=30s
+  --name "${module_name}"
+  "${image_full_url}"
+)
 
+printf "要执行的命令为:\npodman %s\n" "${run_args[*]}"
+container_id=$(podman "${run_args[@]}")
 
-
-printf "要执行的命令为:\n${docker_command}\n"
-container_id=$(eval ${docker_command})
-
-result=$(podman inspect -f {{.State.Running}} ${container_id})
-if [[ "$result" = true ]]; then
-  printf "\033[32m$module_name对应的容器启动成功,容器id为${container_id:0:12}\033[0m\n"
+if [[ "$(podman inspect -f '{{.State.Running}}' "${container_id}")" == "true" ]]; then
+  printf "\033[32m%s 容器启动成功, 容器id: %s\033[0m\n" "${module_name}" "${container_id:0:12}"
 else
-  printf "\033[31m$module_name对应的容器启动失败,容器id为${container_id:0:12}!\033[0m\n"
+  printf "\033[31m%s 容器启动失败, 容器id: %s\033[0m\n" "${module_name}" "${container_id:0:12}"
   exit 1
 fi

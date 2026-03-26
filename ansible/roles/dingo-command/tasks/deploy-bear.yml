@@ -47,6 +47,7 @@
     image: "{{ dingo_bear_image_full }}"
   when:
     - dingo_bear.enabled | bool
+    
 - name: Ensuring /var/log/dingo-bear directory exists
   file:
     path: "/var/log/kolla/dingo-bear"
@@ -98,9 +99,18 @@
   when:
     - dingo_bear.enabled | bool
 
+- name: Copying over nginx.conf
+  template:
+    src: "{{ role_path }}/templates/dingo-bear/nginx.conf.j2"
+    dest: "{{ node_config_directory }}/dingo-bear/nginx.conf"
+    mode: "0660"
+  become: true
+  when:
+    - dingo_bear.enabled | bool
+
 
 - name: Copy deploy.sh to target node
-  copy:
+  template:
     src: "{{ role_path }}/templates/dingo-bear/deploy.sh.j2"
     dest: "/tmp/deploy-bear.sh"
     mode: "0755"
