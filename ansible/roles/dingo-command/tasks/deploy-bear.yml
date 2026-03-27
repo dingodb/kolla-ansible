@@ -1,5 +1,8 @@
 ---
 
+- name: Set dingo_bear fact
+  set_fact:
+    dingo_bear: "{{ dingo_bear_services['dingo-bear'] }}"
 
 - name: Creating dingo-bear database
   become: true
@@ -125,7 +128,7 @@
   become: true
   register: deploy_bear_result
   when:
-    - enable_dingo_bear.enabled | bool
+    - dingo_bear.enabled | bool
 
 - name: Show deploy-bear.sh output
   debug:

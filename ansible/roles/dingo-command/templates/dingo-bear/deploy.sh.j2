@@ -47,7 +47,8 @@ run_args=(
 printf "要执行的命令为:\npodman %s\n" "${run_args[*]}"
 container_id=$(podman "${run_args[@]}")
 
-if [[ "$(podman inspect -f '{{.State.Running}}' "${container_id}")" == "true" ]]; then
+inspect_format='{{ '{{' }}.State.Running{{ '}}' }}'
+if [[ "$(podman inspect -f "$inspect_format" "${container_id}")" == "true" ]]; then
   printf "\033[32m%s 容器启动成功, 容器id: %s\033[0m\n" "${module_name}" "${container_id:0:12}"
 else
   printf "\033[31m%s 容器启动失败, 容器id: %s\033[0m\n" "${module_name}" "${container_id:0:12}"
