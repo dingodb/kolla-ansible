@@ -65,6 +65,9 @@ dingo_command_ceph_mds_namespace: "dingoops-cephfs-hdd"
 dingo_command_ceph_mount_path: "/var/lib/dingo-command"
 dingo_command_ceph_fs_name: "/dingoops-test"
 
+
+
+
 #dingo_command_keystone_user: ""
 #dingo_command_keystone_password: ""
 
