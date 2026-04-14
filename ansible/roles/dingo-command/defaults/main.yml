@@ -185,6 +185,15 @@ dingo_bear_image_full: "{{ dingo_bear_image }}:{{ dingo_bear_tag }}"
 dingo_bear_database_user: "{{ dingo_command_database_user }}"
 dingo_bear_database_password: "{{ dingo_command_database_password }}"
 dingo_bear_database_name: "dingo-bear"
+dingo_bear_database_shard_root_user: "{% if enable_proxysql | bool %}root_shard_{{ dingo_bear_database_shard_id }}{% else %}{{ database_user }}{% endif %}"
+dingo_bear_database_shard_id: "{{ mariadb_default_database_shard_id | int }}"
+dingo_bear_database_shard:
+  users:
+    - user: "{{ dingo_bear_database_user }}"
+      password: "{{ dingo_bear_database_password }}"
+  rules:
+    - schema: "{{ dingo_bear_database_name }}"
+      shard_id: "{{ dingo_bear_database_shard_id }}"
 dingo_bear_port: 38887
 dingo_bear_frontend_port: 30000
 dingo_bear_listen_port: "{{ dingo_bear_port }}"
