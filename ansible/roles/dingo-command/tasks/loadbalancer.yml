@@ -10,5 +10,5 @@
   import_role:
     name: loadbalancer-config
   vars:
-    project_services: dingo-bear
+    project_services: "{{ dingo_bear_services }}"
   tags: always
