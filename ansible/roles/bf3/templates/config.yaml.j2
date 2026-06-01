@@ -1,0 +1,20 @@
+# SOL-VNC Agent config - managed by kolla-ansible (roles/bf3)
+# Nova get_vnc_console() returns DPU IP + vnc.port (this agent's listen port)
+
+bmc:
+  ip: {{ bf3_host_ipmi_address }}
+  user: {{ bf3_host_ipmi_username }}
+  password: {{ bf3_host_ipmi_password }}
+
+vnc:
+  base_port: {{ bf3_vnc_base_port }}
+  max_nodes: {{ bf3_vnc_max_nodes }}
+  # One SOL per DPU: fixed_port matches Nova [dpu] vnc_listen_port
+  fixed_port: {{ bf3_vnc_listen_port }}
+  screen:
+    width: {{ bf3_vnc_screen_width }}
+    height: {{ bf3_vnc_screen_height }}
+    depth: {{ bf3_vnc_screen_depth }}
+
+paths:
+  workdir: /var/run/sol-vnc

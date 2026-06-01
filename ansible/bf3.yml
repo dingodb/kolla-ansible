@@ -1,0 +1,16 @@
+---
+# Deploy the SOL-VNC agent and render the nova [dpu] config on BlueField-3 DPU
+# compute hosts. Imported from site.yml BEFORE nova.yml so the rendered nova
+# [dpu] override is in place when nova-cell merges its config.
+- name: Apply role bf3
+  gather_facts: false
+  hosts:
+    - "{{ bf3_group | default('compute-bf3') }}"
+    - '&enable_bf3_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  tags:
+    - bf3
+  roles:
+    - role: bf3
+      tags: bf3
+      when: enable_bf3 | bool

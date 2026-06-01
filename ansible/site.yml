@@ -74,6 +74,7 @@
         - enable_zun_{{ enable_zun | bool }}
         - enable_zookeeper_{{ enable_zookeeper | bool }}
         - enable_dingo_command_{{ enable_dingo_command | bool }}
+        - enable_bf3_{{ enable_bf3 | bool }}
   tags: always
 
 - name: Apply role prechecks
@@ -712,6 +713,10 @@
   roles:
     - { role: ovn-db,
         tags: [ovn, ovn-db] }
+
+# BF3 DPU: deploy SOL-VNC agent and render nova [dpu] override. Must run before
+# nova.yml so nova-cell's merge_configs picks up the rendered override.
+- import_playbook: bf3.yml
 
 # Nova deployment is more complicated than other services, so is covered in its
 # own playbook.

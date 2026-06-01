@@ -1,0 +1,67 @@
+---
+####################
+# BF3 / SOL-VNC agent
+####################
+# Master switch. Set to "yes" in globals.yml to deploy the SOL-VNC agent and
+# render the nova [dpu] config on BlueField-3 DPU compute hosts.
+enable_bf3: "no"
+
+# Ansible group containing the BF3 DPU compute hosts.
+bf3_group: "compute-bf3"
+
+bf3_services:
+  sol-vnc-agent:
+    container_name: "sol_vnc_agent"
+    group: "{{ bf3_group }}"
+    enabled: "{{ enable_bf3 | bool }}"
+    image: "{{ sol_vnc_agent_image_full }}"
+    volumes: "{{ sol_vnc_agent_default_volumes + sol_vnc_agent_extra_volumes }}"
+    dimensions: "{{ sol_vnc_agent_dimensions }}"
+
+####################
+# Docker image
+####################
+# Custom image, not part of the OpenStack release. Defaults to the "latest" tag
+# rather than openstack_tag. Pushed to your existing registry/namespace.
+sol_vnc_agent_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/sol-vnc-agent"
+sol_vnc_agent_tag: "latest"
+sol_vnc_agent_image_full: "{{ sol_vnc_agent_image }}:{{ sol_vnc_agent_tag }}"
+
+sol_vnc_agent_dimensions: "{{ default_container_dimensions }}"
+
+####################
+# Volumes
+####################
+# Mirrors the original run.sh: bind-mount the rendered config to the path the
+# agent reads inside the container, plus the shared SOL socket dir. Host
+# networking and restart policy are applied automatically by kolla_container.
+sol_vnc_agent_default_volumes:
+  - "{{ node_config_directory }}/sol-vnc-agent/config.yaml:/etc/kolla/nova-compute/config.yaml:ro"
+  - "/var/run/sol-vnc:/var/run/sol-vnc"
+  - "/etc/localtime:/etc/localtime:ro"
+sol_vnc_agent_extra_volumes: "{{ default_extra_volumes }}"
+
+####################
+# Per-DPU values (single source of truth for both config.yaml and nova [dpu])
+####################
+# These describe the BMC/IPMI of the physical host the BF3 DPU is plugged into
+# (not the DPU itself). bf3_host_ipmi_address differs per host and MUST be set
+# in inventory host_vars; the rest are usually shared (group_vars/compute-bf3).
+bf3_host_ipmi_username: "admin"
+bf3_host_ipmi_password: ""
+bf3_vnc_listen_port: 5900
+
+# Nova [dpu] driver options (rendered into the per-host nova override).
+bf3_compute_driver: "dpu.DPUIronicDriver"
+bf3_force_config_drive: true
+bf3_dpu_spdk_volume_bdev_type: "bdev_rbd"
+bf3_dpu_sf_ovs_offload_mode: "doca"
+
+####################
+# SOL-VNC screen / port settings (config.yaml)
+####################
+bf3_vnc_base_port: 5900
+bf3_vnc_max_nodes: 128
+bf3_vnc_screen_width: 1280
+bf3_vnc_screen_height: 800
+bf3_vnc_screen_depth: 24

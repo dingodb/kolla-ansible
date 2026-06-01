@@ -898,6 +898,9 @@ enable_haproxy_memcached: "no"
 # Additional optional OpenStack features and services are specified here
 enable_aodh: "no"
 enable_barbican: "no"
+# BF3 DPU: deploy the SOL-VNC agent and render the nova [dpu] override on hosts
+# in the bf3_group ('compute-bf3') group. Off by default.
+enable_bf3: "no"
 enable_blazar: "no"
 enable_ceilometer: "no"
 enable_ceilometer_ipmi: "no"

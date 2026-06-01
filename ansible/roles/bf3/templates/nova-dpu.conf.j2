@@ -1,0 +1,14 @@
+# Managed by kolla-ansible (roles/bf3). Merged into nova-compute's nova.conf
+# on hosts in the {{ bf3_group }} group when enable_bf3 is true.
+[DEFAULT]
+compute_driver = {{ bf3_compute_driver }}
+force_config_drive = {{ bf3_force_config_drive | bool | lower }}
+
+[dpu]
+ipmi_host = {{ bf3_host_ipmi_address }}
+ipmi_username = {{ bf3_host_ipmi_username }}
+ipmi_password = {{ bf3_host_ipmi_password }}
+enabled = true
+spdk_volume_bdev_type = {{ bf3_dpu_spdk_volume_bdev_type }}
+vnc_listen_port = {{ bf3_vnc_listen_port }}
+sf_ovs_offload_mode = {{ bf3_dpu_sf_ovs_offload_mode }}

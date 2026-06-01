@@ -1,0 +1,24 @@
+---
+# Render the nova [dpu] override into the operator's custom-config tree on the
+# deploy node, so nova-cell's merge_configs picks it up. This file is owned by
+# the bf3 role for hosts in {{ bf3_group }} - it replaces the hand-maintained
+# /etc/kolla/config/nova/<host>/nova.conf for these DPU hosts.
+- name: Ensuring nova custom-config directory exists for BF3 DPU hosts
+  file:
+    path: "{{ node_custom_config }}/nova/{{ inventory_hostname }}"
+    state: "directory"
+    mode: "0770"
+  delegate_to: localhost
+  when:
+    - enable_bf3 | bool
+    - inventory_hostname in groups[bf3_group]
+
+- name: Rendering nova [dpu] config for BF3 DPU hosts
+  template:
+    src: "nova-dpu.conf.j2"
+    dest: "{{ node_custom_config }}/nova/{{ inventory_hostname }}/nova.conf"
+    mode: "0660"
+  delegate_to: localhost
+  when:
+    - enable_bf3 | bool
+    - inventory_hostname in groups[bf3_group]
