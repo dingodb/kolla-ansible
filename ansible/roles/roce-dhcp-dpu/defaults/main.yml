@@ -1,0 +1,12 @@
+---
+roce_dhcp_dpu_image: "{{ docker_registry }}/openstack.kolla/roce-dhcp:dpu"
+roce_dhcp_dpu_env_dir: /etc/kolla/roce-dhcp
+
+# nova-compute 容器内 nova/virt/dpu/ 的完整路径（跟随 kolla venv python 版本）
+roce_dhcp_dpu_nova_driver_path: /var/lib/kolla/venv/lib/python3.12/site-packages/nova/virt/dpu
+
+# 是否将 driver.py/sf_client.py/conf.py/roce_client.py 拷贝进 nova_compute 容器
+# 厂家已将驱动打包进 nova_compute 镜像时保持 false（默认）；
+# 仅当需要手动覆盖驱动文件时（如测试未发布版本）改为 true，
+# 或在命令行传 --extra-vars "roce_dhcp_dpu_copy_driver=true"
+roce_dhcp_dpu_copy_driver: false

@@ -1,0 +1,6 @@
+[Unit]
+Description=RoCE Metrics Textfile Collector
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/roce-textfile-collector.sh

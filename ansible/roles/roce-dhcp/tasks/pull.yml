@@ -1,0 +1,4 @@
+---
+- name: Pull roce-dhcp image
+  become: true
+  command: podman pull --tls-verify=false {{ roce_dhcp_image }}
