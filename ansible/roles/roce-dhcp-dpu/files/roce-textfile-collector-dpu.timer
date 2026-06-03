@@ -1,0 +1,9 @@
+[Unit]
+Description=RoCE Metrics Textfile Collector Timer (DPU)
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,70 @@
+---
+- include_tasks: pull.yml
+- include_tasks: config.yml
+
+- name: Migrate roce-dhcp from br-roce to br-ex (idempotent)
+  become: true
+  shell: |
+    ovs-vsctl br-exists br-roce && ovs-vsctl del-br br-roce || true
+    ovs-vsctl port-to-br roce-dhcp 2>/dev/null | grep -q br-ex || \
+      ovs-vsctl add-port br-ex roce-dhcp -- set Interface roce-dhcp type=internal
+    ip link set roce-dhcp up
+
+- name: Install roce-dhcp-dpu systemd service
+  become: true
+  template:
+    src: roce-dhcp-dpu.service.j2
+    dest: /etc/systemd/system/roce-dhcp.service
+    mode: '0644'
+  notify: restart roce-dhcp-dpu
+
+- name: Enable and start roce-dhcp (DPU)
+  become: true
+  systemd:
+    name: roce-dhcp
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Install roce-tc-watchdog-dpu script
+  become: true
+  copy:
+    src: roce-tc-watchdog-dpu.py
+    dest: /usr/local/bin/roce-tc-watchdog-dpu.py
+    mode: '0755'
+
+- name: Install roce-tc-watchdog-dpu systemd service
+  become: true
+  copy:
+    src: roce-tc-watchdog-dpu.service
+    dest: /etc/systemd/system/roce-tc-watchdog-dpu.service
+    mode: '0644'
+
+- name: Install roce-tc-watchdog-dpu systemd timer
+  become: true
+  copy:
+    src: roce-tc-watchdog-dpu.timer
+    dest: /etc/systemd/system/roce-tc-watchdog-dpu.timer
+    mode: '0644'
+
+- name: Enable and start roce-tc-watchdog-dpu timer
+  become: true
+  systemd:
+    name: roce-tc-watchdog-dpu.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Update nova.conf [dpu] section
+  become: true
+  ini_file:
+    path: /etc/kolla/nova-compute/nova.conf
+    section: dpu
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop:
+    - { key: roce_sidecar_url,  value: "http://127.0.0.1:9967" }
+    - { key: roce_sf_num_min,   value: "800" }
+    - { key: roce_sf_num_max,   value: "999" }
+    - { key: roce_ovs_bridge,   value: "br-ex" }
+  notify: restart nova_compute

@@ -1,0 +1,4 @@
+---
+- name: Pull roce-dhcp-dpu image
+  become: true
+  command: docker pull {{ roce_dhcp_dpu_image }}

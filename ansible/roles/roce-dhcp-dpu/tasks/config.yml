@@ -1,0 +1,49 @@
+---
+- name: Create roce-dhcp config dir
+  become: true
+  file:
+    path: "{{ roce_dhcp_dpu_env_dir }}"
+    state: directory
+    mode: '0750'
+
+- name: Template env file
+  become: true
+  template:
+    src: env.j2
+    dest: "{{ roce_dhcp_dpu_env_dir }}/env"
+    mode: '0640'
+  notify: restart roce-dhcp-dpu
+
+- name: Deploy roce_sidecar.py to DPU host
+  become: true
+  copy:
+    src: "{{ role_path }}/files/roce_sidecar.py"
+    dest: "{{ roce_dhcp_dpu_env_dir }}/roce_sidecar.py"
+    mode: '0644'
+  notify: restart roce-dhcp-dpu
+
+- name: Push nova driver files to DPU host
+  become: true
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp/roce-nova-driver-{{ item | basename }}"
+    mode: '0644'
+  loop:
+    - "{{ role_path }}/files/roce_client.py"
+    - "{{ role_path }}/files/conf.py"
+    - "{{ role_path }}/files/sf_client.py"
+    - "{{ role_path }}/files/driver.py"
+  when: roce_dhcp_dpu_copy_driver | bool
+
+- name: Copy nova driver files into nova_compute container
+  become: true
+  shell: |
+    docker cp /tmp/roce-nova-driver-{{ item }} \
+      nova_compute:{{ roce_dhcp_dpu_nova_driver_path }}/{{ item }}
+  loop:
+    - roce_client.py
+    - conf.py
+    - sf_client.py
+    - driver.py
+  notify: restart nova_compute
+  when: roce_dhcp_dpu_copy_driver | bool

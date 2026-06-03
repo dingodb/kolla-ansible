@@ -1,0 +1,27 @@
+[Unit]
+Description=RoCE DHCP Sidecar (container)
+After=network.target openvswitch.service
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStartPre=-/usr/bin/podman rm -f roce-dhcp
+ExecStartPre=-/sbin/ip link set roce-dhcp up mtu 9000
+ExecStartPre=-/usr/bin/podman exec openvswitch_vswitchd ovs-vsctl set interface roce-dhcp mtu_request=9000
+ExecStart=/usr/bin/podman run --rm \
+    --name roce-dhcp \
+    --network=host \
+    --cap-add=NET_RAW \
+    --cap-add=NET_ADMIN \
+    --cap-add=DAC_OVERRIDE \
+    --env-file {{ roce_dhcp_env_dir }}/env \
+    -v {{ roce_dhcp_env_dir }}/roce_sidecar.py:/app/roce_sidecar.py:ro \
+    -v /var/run/openvswitch:/var/run/openvswitch:ro \
+    {{ roce_dhcp_image }}
+ExecStop=/usr/bin/podman stop roce-dhcp
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

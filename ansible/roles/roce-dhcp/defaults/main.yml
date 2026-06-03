@@ -1,0 +1,12 @@
+---
+roce_dhcp_image: "{{ docker_registry | default('10.220.56.105:5000') }}/roce-dhcp:latest"
+roce_dhcp_env_dir: /etc/kolla/roce-dhcp
+
+# eSwitch 模式：ROCE_PF 固定为 roce-dhcp（sidecar 监听 OVS internal port）
+# legacy 模式：填实际 PF 网卡名，如 ens7f1np1
+# host_vars/<host>.yml 中覆盖此值
+roce_dhcp_roce_pf: "roce-dhcp"
+
+# eSwitch 模式时 representor 和 roce-dhcp 所在的 OVS bridge
+roce_dhcp_ovs_bridge: "br-ex"
+

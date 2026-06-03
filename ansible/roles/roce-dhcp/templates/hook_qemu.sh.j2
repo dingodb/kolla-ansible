@@ -1,0 +1,219 @@
+#!/bin/bash
+# /etc/libvirt/hooks/qemu  —  RoCE DHCP libvirt hook（eSwitch 模式，计算节点）
+#
+# 处理：
+#   prepare begin  → 注册实例，找 VF representor，配 MAC，加入 OVS bridge access VLAN
+#   release end    → 从 OVS bridge 移除 representor，注销实例
+
+DOMAIN=$1
+EVENT=$2
+PHASE=$3
+
+SIDECAR="http://127.0.0.1:9967"
+NODE_HOST="{{ inventory_hostname }}"
+NODE_TYPE="compute"
+OVS_BRIDGE="{{ roce_dhcp_ovs_bridge }}"
+LOG="/var/log/kolla/nova/roce-hook.log"
+
+_log() { echo "$(date '+%Y-%m-%d %H:%M:%S') [$$] ${DOMAIN} ${EVENT}/${PHASE} $*" >> "$LOG"; }
+
+DOMAIN_XML=$(cat)
+
+# 从 VF PCI 地址找对应的 eSwitch representor
+# 结果通过全局变量返回（不用命令替换，避免子 shell 变量丢失）：
+#   _REP_NETDEV  representor 网卡名
+#   _REP_PF_NET  PF 网卡名（用于 ip link set vf mac）
+#   _REP_VF_NUM  VF 编号
+_find_representor() {
+    local vf_addr=$1
+    local pf_sysfs pf_net pf_port_name pf_idx switch_id vf_num link target port_name
+    _REP_NETDEV="" _REP_PF_NET="" _REP_VF_NUM=""
+
+    pf_sysfs=$(readlink -f "/sys/bus/pci/devices/$vf_addr/physfn" 2>/dev/null)
+    [[ -z "$pf_sysfs" ]] && return 1
+
+    pf_net=$(ls "${pf_sysfs}/net/" 2>/dev/null | head -1)
+    [[ -z "$pf_net" ]] && return 1
+
+    switch_id=$(cat "/sys/class/net/${pf_net}/phys_switch_id" 2>/dev/null)
+    [[ -z "$switch_id" ]] && return 1
+
+    pf_port_name=$(cat "/sys/class/net/${pf_net}/phys_port_name" 2>/dev/null)
+    pf_idx=$(echo "$pf_port_name" | grep -oP '\d+' | head -1)
+    pf_idx=${pf_idx:-0}
+
+    vf_num=""
+    for link in "${pf_sysfs}"/virtfn*; do
+        target=$(readlink -f "$link" 2>/dev/null)
+        if [[ "$target" == *"$vf_addr"* ]]; then
+            vf_num=${link##*virtfn}
+            break
+        fi
+    done
+    [[ -z "$vf_num" ]] && return 1
+
+    port_name="pf${pf_idx}vf${vf_num}"
+
+    local netdev_path netdev dev_switch dev_port
+    for netdev_path in /sys/class/net/*; do
+        netdev=$(basename "$netdev_path")
+        dev_switch=$(cat "${netdev_path}/phys_switch_id" 2>/dev/null)
+        dev_port=$(cat "${netdev_path}/phys_port_name" 2>/dev/null)
+        if [[ "$dev_switch" == "$switch_id" && "$dev_port" == "$port_name" ]]; then
+            _REP_NETDEV=$netdev
+            _REP_PF_NET=$pf_net
+            _REP_VF_NUM=$vf_num
+            return 0
+        fi
+    done
+    return 1
+}
+
+_get_vf_addr() {
+    local bus slot func
+    bus=$(echo "$DOMAIN_XML"  | grep -A5 "hostdev.*type='pci'" | grep -oP "bus='0x\K[0-9a-f]+"  | head -1)
+    slot=$(echo "$DOMAIN_XML" | grep -A5 "hostdev.*type='pci'" | grep -oP "slot='0x\K[0-9a-f]+" | head -1)
+    func=$(echo "$DOMAIN_XML" | grep -A5 "hostdev.*type='pci'" | grep -oP "function='0x\K[0-9a-f]+" | head -1)
+    [[ -z "$bus" || -z "$slot" ]] && return 1
+    echo "0000:${bus}:${slot}.${func}"
+}
+
+# ── prepare begin ─────────────────────────────────────────────────────────────
+if [[ "$EVENT" == "prepare" && "$PHASE" == "begin" ]]; then
+
+    INSTANCE_UUID=$(echo "$DOMAIN_XML" | grep -oP '(?<=<uuid>)[0-9a-f-]+' | head -1)
+    FLAVOR_NAME=$(  echo "$DOMAIN_XML" | grep -oP '(?<=<nova:flavor name=")[^"]+' | head -1)
+    PROJECT_ID=$(   echo "$DOMAIN_XML" | grep -oP '(?<=<nova:project uuid=")[^"]+' | head -1)
+
+    if [[ -z "$INSTANCE_UUID" ]]; then
+        _log "WARN uuid 提取失败，跳过"
+        exit 0
+    fi
+
+    # ── eSwitch 硬件发现（在 register 之前：需要读 representor 真实 MAC）──────
+    VF_ADDR=$(_get_vf_addr)
+    if [[ -z "$VF_ADDR" ]]; then
+        _log "INFO domain XML 中未发现 VFIO hostdev，跳过"
+        exit 0
+    fi
+
+    _find_representor "$VF_ADDR"
+    if [[ -z "$_REP_NETDEV" ]]; then
+        _log "WARN 未找到 $VF_ADDR 的 eSwitch representor"
+        exit 0
+    fi
+    REP=$_REP_NETDEV
+    _log "INFO VF_ADDR=$VF_ADDR  representor=$REP"
+
+    RESP=$(HOME=/nonexistent curl -s --max-time 5 \
+        -X POST "$SIDECAR/roce/register" \
+        -H "Content-Type: application/json" \
+        -d "{\"instance_uuid\":\"$INSTANCE_UUID\",
+             \"flavor_name\":\"$FLAVOR_NAME\",
+             \"project_id\":\"$PROJECT_ID\",
+             \"node_host\":\"$NODE_HOST\",
+             \"node_type\":\"$NODE_TYPE\"}")
+    RC=$?
+
+    if [[ $RC -ne 0 || -z "$RESP" ]]; then
+        _log "WARN sidecar 不可达(rc=$RC)，跳过 RoCE 分配"
+        exit 0
+    fi
+
+    ROCE_ON=$(echo "$RESP" | grep -oP '"roce_enabled":\K(true|false)')
+    if [[ "$ROCE_ON" != "true" ]]; then
+        _log "INFO RoCE 未启用（flavor=$FLAVOR_NAME），跳过"
+        exit 0
+    fi
+
+    VLAN=$(echo "$RESP" | grep -oP '"vlan_id":\K[0-9]+')
+    IP=$(  echo "$RESP" | grep -oP '"ip":"\K[^"]+')
+    MAC=$( echo "$RESP" | grep -oP '"mac":"\K[^"]+')
+
+    if [[ -z "$VLAN" || -z "$IP" || -z "$MAC" ]]; then
+        _log "WARN sidecar 返回异常: $RESP"
+        exit 0
+    fi
+
+    SUBNET=$(      echo "$RESP" | grep -oP '"subnet":"\K[^"]+')
+    EXTRA_ROUTES=$(echo "$RESP" | grep -oP '"extra_routes":"\K[^"]+')
+    _log "INFO 分配成功  vlan=$VLAN  ip=$IP  mac=$MAC  subnet=$SUBNET"
+
+    # 1. 配置 VF MAC：eSwitch 模式用 devlink port function set（写入 VF 硬件寄存器，
+    #    guest mlx5 驱动从此读 MAC，不受 ip link set vf mac 影响）
+    DEVLINK_HANDLE=$(devlink port show 2>/dev/null | grep " netdev ${REP} " | awk '{print $1}')
+    DEVLINK_HANDLE=${DEVLINK_HANDLE%:}
+    if [[ -n "$DEVLINK_HANDLE" ]]; then
+        devlink port function set "$DEVLINK_HANDLE" hw_addr "$MAC" 2>&1 \
+            && _log "INFO devlink $DEVLINK_HANDLE hw_addr=$MAC 配置成功" \
+            || _log "WARN devlink $DEVLINK_HANDLE hw_addr 配置失败"
+    else
+        _log "WARN 未找到 $REP 的 devlink port handle，跳过 MAC 配置"
+    fi
+
+    if ovs-vsctl list-ports "$OVS_BRIDGE" | grep -qx "$REP"; then
+        _log "INFO $REP 已在 $OVS_BRIDGE，跳过 add-port"
+    else
+        ovs-vsctl add-port "$OVS_BRIDGE" "$REP" \
+            && _log "INFO $REP 加入 $OVS_BRIDGE 成功" \
+            || { _log "WARN $REP 加入 $OVS_BRIDGE 失败"; exit 0; }
+    fi
+    # 记录实际使用的 OVS port 名；接口在 VM 存续期间可能被内核重命名，
+    # release/end 用此文件找到正确的 OVS port 名，避免产生 zombie port
+    echo "$REP" > "/run/roce-hook-${INSTANCE_UUID}.rep"
+
+    # 2b. 设置 representor MTU 与 PF 一致（RoCE 需要大包，默认 1500 不够）
+    ip link set "$REP" mtu 9000 \
+        && _log "INFO $REP mtu=9000 配置成功" \
+        || _log "WARN $REP mtu 配置失败"
+
+    ovs-vsctl set port "$REP" tag="$VLAN" vlan_mode=access \
+        && _log "INFO $REP VLAN=$VLAN(access) 配置成功" \
+        || _log "WARN $REP VLAN 配置失败"
+
+
+# ── release end ───────────────────────────────────────────────────────────────
+elif [[ "$EVENT" == "release" && "$PHASE" == "end" ]]; then
+
+    INSTANCE_UUID=$(echo "$DOMAIN_XML" | grep -oP '(?<=<uuid>)[0-9a-f-]+' | head -1)
+    if [[ -z "$INSTANCE_UUID" ]]; then
+        _log "WARN uuid 提取失败，跳过注销"
+        exit 0
+    fi
+
+    _log "INFO release end  uuid=$INSTANCE_UUID"
+
+    VF_ADDR=$(_get_vf_addr)
+    if [[ -n "$VF_ADDR" ]]; then
+        _find_representor "$VF_ADDR"
+        if [[ -n "$_REP_NETDEV" ]]; then
+            tc qdisc del dev "$_REP_NETDEV" ingress 2>/dev/null || true
+            _log "INFO TC ACL removed: rep=$_REP_NETDEV"
+            # OVS 存储的 port 名可能与当前接口名不同（VM 存续期间接口被内核重命名）
+            # 优先使用 prepare/begin 时记录的名称，防止 zombie port 残留
+            _SAVED_REP_FILE="/run/roce-hook-${INSTANCE_UUID}.rep"
+            if [[ -f "$_SAVED_REP_FILE" ]]; then
+                _OVS_DEL=$(cat "$_SAVED_REP_FILE")
+                rm -f "$_SAVED_REP_FILE"
+            else
+                _OVS_DEL="$_REP_NETDEV"
+            fi
+            ovs-vsctl del-port "$OVS_BRIDGE" "$_OVS_DEL" 2>/dev/null \
+                && _log "INFO $_OVS_DEL 已从 $OVS_BRIDGE 移除" \
+                || _log "INFO $_OVS_DEL 不在 $OVS_BRIDGE（已清理）"
+        else
+            _log "INFO 未找到 representor，跳过 OVS 清理"
+        fi
+    fi
+
+    RESP=$(HOME=/nonexistent curl -s --max-time 5 \
+        -X DELETE "$SIDECAR/roce/instance/$INSTANCE_UUID?caller_host=$NODE_HOST" 2>&1)
+    RC=$?
+    if [[ $RC -ne 0 ]]; then
+        _log "WARN sidecar 注销失败(rc=$RC): $RESP"
+    else
+        _log "INFO 注销成功"
+    fi
+fi
+
+exit 0

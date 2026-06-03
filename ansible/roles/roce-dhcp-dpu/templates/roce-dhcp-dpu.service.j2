@@ -1,0 +1,27 @@
+[Unit]
+Description=RoCE DHCP Sidecar (DPU, Docker)
+After=network.target docker.service openvswitch.service
+Requires=docker.service
+StartLimitBurst=5
+StartLimitIntervalSec=120
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStartPre=-/usr/bin/docker stop roce-dhcp
+ExecStartPre=-/usr/bin/docker rm roce-dhcp
+ExecStartPre=/sbin/ip link set roce-dhcp up
+ExecStart=/usr/bin/docker run --rm \
+    --name roce-dhcp \
+    --network=host \
+    --privileged \
+    --user root \
+    --security-opt apparmor=unconfined \
+    --env-file {{ roce_dhcp_dpu_env_dir }}/env \
+    -v {{ roce_dhcp_dpu_env_dir }}/roce_sidecar.py:/app/roce_sidecar.py:ro \
+    {{ roce_dhcp_dpu_image }}
+ExecStop=/usr/bin/docker stop roce-dhcp
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+---
+- name: restart roce-dhcp-dpu
+  become: true
+  systemd:
+    name: roce-dhcp
+    state: restarted
+
+- name: restart nova_compute
+  become: true
+  command: docker restart nova_compute

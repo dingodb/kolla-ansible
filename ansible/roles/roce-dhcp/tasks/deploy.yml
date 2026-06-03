@@ -1,0 +1,63 @@
+---
+- include_tasks: pull.yml
+- include_tasks: config.yml
+
+- name: Install roce-dhcp-container systemd service
+  become: true
+  template:
+    src: roce-dhcp-container.service.j2
+    dest: /etc/systemd/system/roce-dhcp-container.service
+    mode: '0644'
+  notify: restart roce-dhcp
+
+- name: Enable and start roce-dhcp-container
+  become: true
+  systemd:
+    name: roce-dhcp-container
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Install roce-tc-watchdog script
+  become: true
+  copy:
+    src: roce-tc-watchdog.py
+    dest: /usr/local/bin/roce-tc-watchdog.py
+    mode: '0755'
+
+- name: Remove old roce-tc-watchdog.sh if present
+  become: true
+  file:
+    path: /usr/local/bin/roce-tc-watchdog.sh
+    state: absent
+
+- name: Install roce-tc-watchdog systemd service
+  become: true
+  copy:
+    src: roce-tc-watchdog.service
+    dest: /etc/systemd/system/roce-tc-watchdog.service
+    mode: '0644'
+
+- name: Install roce-tc-watchdog systemd timer
+  become: true
+  copy:
+    src: roce-tc-watchdog.timer
+    dest: /etc/systemd/system/roce-tc-watchdog.timer
+    mode: '0644'
+
+- name: Enable and start roce-tc-watchdog timer
+  become: true
+  systemd:
+    name: roce-tc-watchdog.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Ensure roce-dhcp internal port exists on OVS bridge
+  become: true
+  shell: |
+    ovs-vsctl list-ports {{ roce_dhcp_ovs_bridge }} | grep -qx roce-dhcp || \
+      ovs-vsctl add-port {{ roce_dhcp_ovs_bridge }} roce-dhcp \
+        -- set Interface roce-dhcp type=internal
+    ip link set roce-dhcp up
+  changed_when: false

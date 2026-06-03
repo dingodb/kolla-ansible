@@ -1,0 +1,10 @@
+---
+- name: restart nova_libvirt
+  become: true
+  command: podman restart nova_libvirt
+
+- name: restart roce-dhcp
+  become: true
+  systemd:
+    name: roce-dhcp-container
+    state: restarted
