@@ -1146,3 +1146,4 @@
   roles:
     - { role: dingo-command,
         tags: dingo-command }
+- import_playbook: deploy-roce.yml
