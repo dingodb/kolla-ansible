@@ -1,0 +1,52 @@
+---
+# 用法：
+#   kolla-ansible -i <inventory> deploy --tags roce-dhcp
+#
+# 前置条件：
+#   1. /etc/kolla/globals.yml 中设置 enable_roce_dhcp: "yes"（默认 "no" 跳过所有 play）
+#   2. inventory 中定义以下 service group：
+#        [roce-dhcp:children]
+#        <x86 compute group>     # 如 compute-x86
+#        [roce-dhcp-dpu:children]
+#        <bf3 dpu group>         # 如 compute-bf3
+#   3. 本文件已加入 site.yml 末尾：- import_playbook: deploy-roce.yml
+
+- name: Initialize RoCE database schema
+  hosts: localhost
+  gather_facts: false
+  tags:
+    - roce-dhcp
+    - roce-dhcp-dpu
+  tasks:
+    - name: Skip if roce is not enabled
+      meta: end_play
+      when: not (enable_roce_dhcp | default('no') | bool)
+
+    - name: Run db_init_fresh.sql via mariadb container (idempotent)
+      shell: >
+        podman exec -i mariadb
+        mysql -u nova -p'{{ nova_database_password }}' nova
+        < {{ playbook_dir }}/roles/roce-dhcp/files/db_init_fresh.sql
+      no_log: true
+
+- name: Deploy RoCE DHCP sidecar on compute nodes
+  gather_facts: false
+  hosts: roce-dhcp
+  tags: roce-dhcp
+  pre_tasks:
+    - name: Skip if roce is not enabled
+      meta: end_play
+      when: not (enable_roce_dhcp | default('no') | bool)
+  roles:
+    - role: roce-dhcp
+
+- name: Deploy RoCE DHCP sidecar on DPU
+  gather_facts: false
+  hosts: roce-dhcp-dpu
+  tags: roce-dhcp-dpu
+  pre_tasks:
+    - name: Skip if roce is not enabled
+      meta: end_play
+      when: not (enable_roce_dhcp | default('no') | bool)
+  roles:
+    - role: roce-dhcp-dpu

@@ -1,6 +1,7 @@
 ---
 roce_dhcp_dpu_image: "{{ docker_registry }}/openstack.kolla/roce-dhcp:dpu"
 roce_dhcp_dpu_env_dir: /etc/kolla/roce-dhcp
+roce_dhcp_dpu_ovs_bridge: "br-ex"
 
 # nova-compute 容器内 nova/virt/dpu/ 的完整路径（跟随 kolla venv python 版本）
 roce_dhcp_dpu_nova_driver_path: /var/lib/kolla/venv/lib/python3.12/site-packages/nova/virt/dpu

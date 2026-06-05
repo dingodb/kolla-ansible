@@ -2,13 +2,13 @@
 - include_tasks: pull.yml
 - include_tasks: config.yml
 
-- name: Migrate roce-dhcp from br-roce to br-ex (idempotent)
+- name: Ensure roce-dhcp internal port exists on OVS bridge (DPU)
   become: true
   shell: |
     ovs-vsctl br-exists br-roce && ovs-vsctl del-br br-roce || true
-    ovs-vsctl port-to-br roce-dhcp 2>/dev/null | grep -q br-ex || \
-      ovs-vsctl add-port br-ex roce-dhcp -- set Interface roce-dhcp type=internal
-    ip link set roce-dhcp up
+    ovs-vsctl port-to-br roce-dhcp 2>/dev/null | grep -q {{ roce_dhcp_dpu_ovs_bridge }} || \
+      ovs-vsctl add-port {{ roce_dhcp_dpu_ovs_bridge }} roce-dhcp -- set Interface roce-dhcp type=internal
+    ip link set roce-dhcp up || true
 
 - name: Install roce-dhcp-dpu systemd service
   become: true
@@ -17,6 +17,12 @@
     dest: /etc/systemd/system/roce-dhcp.service
     mode: '0644'
   notify: restart roce-dhcp-dpu
+
+- name: Reset failed state of roce-dhcp (in case of previous crash loop)
+  become: true
+  command: systemctl reset-failed roce-dhcp
+  failed_when: false
+  changed_when: false
 
 - name: Enable and start roce-dhcp (DPU)
   become: true
@@ -66,5 +72,5 @@
     - { key: roce_sidecar_url,  value: "http://127.0.0.1:9967" }
     - { key: roce_sf_num_min,   value: "800" }
     - { key: roce_sf_num_max,   value: "999" }
-    - { key: roce_ovs_bridge,   value: "br-ex" }
+    - { key: roce_ovs_bridge,   value: "{{ roce_dhcp_dpu_ovs_bridge }}" }
   notify: restart nova_compute

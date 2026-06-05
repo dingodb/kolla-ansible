@@ -56,8 +56,10 @@
 - name: Ensure roce-dhcp internal port exists on OVS bridge
   become: true
   shell: |
-    ovs-vsctl list-ports {{ roce_dhcp_ovs_bridge }} | grep -qx roce-dhcp || \
-      ovs-vsctl add-port {{ roce_dhcp_ovs_bridge }} roce-dhcp \
+    OVS=$(which ovs-vsctl 2>/dev/null || echo "podman exec ovsdpdk_db ovs-vsctl")
+    $OVS list-ports {{ roce_dhcp_ovs_bridge }} | grep -qx roce-dhcp || \
+      $OVS add-port {{ roce_dhcp_ovs_bridge }} roce-dhcp \
         -- set Interface roce-dhcp type=internal
     ip link set roce-dhcp up
   changed_when: false
+  when: roce_dhcp_roce_pf == 'roce-dhcp'

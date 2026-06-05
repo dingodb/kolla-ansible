@@ -11,7 +11,7 @@ Restart=on-failure
 RestartSec=5s
 ExecStartPre=-/usr/bin/docker stop roce-dhcp
 ExecStartPre=-/usr/bin/docker rm roce-dhcp
-ExecStartPre=/sbin/ip link set roce-dhcp up
+ExecStartPre=-/sbin/ip link set roce-dhcp up
 ExecStart=/usr/bin/docker run --rm \
     --name roce-dhcp \
     --network=host \
