@@ -1,7 +1,7 @@
 ---
 - name: Fail if roce_dhcp_roce_pf is not set
   fail:
-    msg: "roce_dhcp_roce_pf must be set in host_vars/{{ inventory_hostname }}.yml"
+    msg: "roce_dhcp_roce_pf must be set for {{ inventory_hostname }} (e.g. inline in multinode inventory)"
   when: roce_dhcp_roce_pf == ""
 
 - include_tasks: "{{ kolla_action | default('deploy') }}.yml"
