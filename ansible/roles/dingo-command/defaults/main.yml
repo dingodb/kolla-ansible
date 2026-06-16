@@ -223,6 +223,45 @@ dingo_bear_healthcheck:
   test: "{% if dingo_bear_enable_healthchecks | bool %}{{ dingo_bear_healthcheck_test }}{% else %}NONE{% endif %}"
   timeout: "{{ dingo_bear_healthcheck_timeout }}"
 
+dingo_bear_recycle_project_id: ""
+dingo_bear_recycle_image_id: ""
+dingo_bear_recycle_flavor_id: ""
+dingo_bear_recycle_network_id: ""
+dingo_bear_recycle_ssh_user: "root"
+dingo_bear_recycle_ssh_password: ""
+dingo_bear_recycle_download_package_enable: false
+dingo_bear_recycle_download_server_url: ""
+dingo_bear_recycle_image_registry: ""
+dingo_bear_recycle_enabled: true
+dingo_bear_recycle_tenant_regions:
+  - "openstack5"
+  - "openstack6"
+  - "openstack7"
+  - "bj10-test"
+dingo_bear_recycle_max_nodes_per_job: 50
+dingo_bear_recycle_openstack_cloud: ""
+dingo_bear_recycle_region: ""
+dingo_bear_recycle_infraops_region: ""
+dingo_bear_recycle_infraops_repo_path: ""
+dingo_bear_recycle_infraops_script_path: ""
+dingo_bear_recycle_work_base_dir: "/var/lib/dingo-command/recycle"
+dingo_bear_recycle_ssh_private_key_path: ""
+dingo_bear_recycle_thread_pool_workers: 30
+dingo_bear_recycle_ironic_available_timeout: 900
+dingo_bear_recycle_placement_settle_timeout: 90
+dingo_bear_recycle_server_active_timeout: 3600
+dingo_bear_recycle_ssh_connect_timeout: 1800
+dingo_bear_recycle_post_check_timeout: 300
+dingo_bear_recycle_gpu_capacity_timeout: 900
+dingo_bear_recycle_infraops_timeout_per_10_nodes: 5400
+dingo_bear_recycle_stage_abnormal_ratio: "1.5"
+dingo_bear_recycle_allow_target_types:
+  - "bare_metal_pool"
+  - "cci"
+  - "vks"
+dingo_bear_recycle_queue: ""
+dingo_bear_recycle_default_target_cluster_id: ""
+
 dingo_bear_services:
   dingo-bear:
     container_name: dingo-bear
