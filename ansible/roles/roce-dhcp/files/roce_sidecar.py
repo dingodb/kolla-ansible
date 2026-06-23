@@ -214,6 +214,33 @@ def _load_state_from_db():
             time.sleep(delay)
             delay = min(delay * 2, 60)  # 5→10→20→40→60→60...
 
+def _is_instance_deleting(instance_uuid: str) -> bool:
+    """查 nova cell DB 判断实例是否真正被删除，而非关机/重启。
+
+    nova 删除实例时先把 task_state 设为 'deleting'（在调用 libvirt destroy 之前），
+    关机/重启时 task_state 是 'powering-off'/'rebooting' 等，借此区分。
+    DB 查询失败或实例记录不存在时返回 True（保守策略：允许清理）。
+    """
+    try:
+        db = _db()
+        with db.cursor() as c:
+            c.execute(
+                "SELECT task_state, deleted FROM instances WHERE uuid = %s",
+                (instance_uuid,)
+            )
+            row = c.fetchone()
+        db.close()
+        if row is None:
+            return True          # 记录不存在 → 已删除或从未写入
+        task_state, deleted = row
+        if deleted:
+            return True          # 已软删除
+        return task_state == 'deleting'
+    except Exception:
+        log.exception('_is_instance_deleting: nova DB 查询失败 uuid=%s', instance_uuid)
+        return True              # 查询失败时允许清理（保守策略）
+
+
 def _mask_to_prefix(mask_str: str) -> int:
     return bin(int.from_bytes(
         bytes(int(x) for x in mask_str.split('.')), 'big'
@@ -344,6 +371,17 @@ def register():
 def deregister(instance_uuid):
     # 冷迁移：caller_host 为源节点 IP/hostname，若 DB 已属于目标节点则跳过删除
     caller_host = request.args.get('caller_host', NODE_HOST)
+
+    # 关机/重启时 libvirt hook 也会触发 DELETE，但不应清理 DB。
+    # 查 nova instances.task_state：只有 'deleting'（nova delete 流程）才真正清理。
+    # ?force=1 绕过此检查，用于：管理员手动清理孤立记录、driver rollback 等场景。
+    force = request.args.get('force', '0') in ('1', 'true', 'yes')
+    if not force and not _is_instance_deleting(instance_uuid):
+        log.info('skip deregister uuid=%s: nova task_state != deleting（关机/重启，非删除）',
+                 instance_uuid)
+        return jsonify(ok=True, skipped=True,
+                       msg='nova instance is not being deleted'), 200
+
     try:
         db = _db()
         try:

@@ -1,4 +1,4 @@
--- RoCE DB 全新初始化（直接建 v3 正确 schema，跳过增量迁移）
+-- RoCE DB 全新初始化（直接建 v4 正确 schema，跳过增量迁移）
 -- 适用场景：全新环境首次部署（数据库中尚无 dpu_roce_* 表）
 -- 执行方式（在部署节点）：
 --   PASS=$(grep nova_database_password /etc/kolla/passwords.yml | awk '{print $2}')
