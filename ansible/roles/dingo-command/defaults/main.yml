@@ -233,11 +233,7 @@ dingo_bear_recycle_download_package_enable: false
 dingo_bear_recycle_download_server_url: ""
 dingo_bear_recycle_image_registry: ""
 dingo_bear_recycle_enabled: true
-dingo_bear_recycle_tenant_regions:
-  - "openstack5"
-  - "openstack6"
-  - "openstack7"
-  - "bj10-test"
+dingo_bear_recycle_tenant_regions: []
 dingo_bear_recycle_max_nodes_per_job: 50
 dingo_bear_recycle_openstack_cloud: ""
 dingo_bear_recycle_region: ""
