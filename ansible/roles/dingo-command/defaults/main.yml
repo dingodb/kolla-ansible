@@ -244,6 +244,10 @@ dingo_bear_recycle_region: ""
 dingo_bear_recycle_infraops_region: ""
 dingo_bear_recycle_infraops_repo_path: ""
 dingo_bear_recycle_infraops_script_path: ""
+dingo_bear_recycle_infraops_wrapper_path: ""
+dingo_bear_recycle_infraops_auto_pull: false
+dingo_bear_recycle_infraops_pull_branch: "release"
+dingo_bear_recycle_infraops_forks: 20
 dingo_bear_recycle_work_base_dir: "/var/lib/dingo-command/recycle"
 dingo_bear_recycle_ssh_private_key_path: ""
 dingo_bear_recycle_thread_pool_workers: 30
