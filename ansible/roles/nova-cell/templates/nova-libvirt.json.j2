@@ -73,6 +73,13 @@
             "dest": "/var/lib/kolla/share/ca-certificates",
             "owner": "root",
             "perm": "0600"
+        }{% endif %}{% if enable_roce_dhcp | default(false) | bool %},
+        {
+            "source": "{{ container_config_directory }}/hooks_qemu",
+            "dest": "/etc/libvirt/hooks/qemu",
+            "owner": "root",
+            "perm": "0755",
+            "optional": true
         }{% endif %}
     ]
 }
