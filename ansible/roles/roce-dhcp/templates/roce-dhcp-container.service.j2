@@ -1,13 +1,14 @@
 [Unit]
 Description=RoCE DHCP Sidecar (container)
-After=network.target openvswitch.service
+After=network.target kolla-openvswitch_vswitchd-container.service
+Wants=kolla-openvswitch_vswitchd-container.service
 
 [Service]
 Type=simple
 Restart=on-failure
 RestartSec=5s
 ExecStartPre=-/usr/bin/podman rm -f roce-dhcp
-ExecStartPre=-/sbin/ip link set roce-dhcp up mtu 9000
+ExecStartPre=/sbin/ip link set roce-dhcp up mtu 9000
 ExecStartPre=-/usr/bin/podman exec openvswitch_vswitchd ovs-vsctl set interface roce-dhcp mtu_request=9000
 ExecStart=/usr/bin/podman run --rm \
     --name roce-dhcp \
