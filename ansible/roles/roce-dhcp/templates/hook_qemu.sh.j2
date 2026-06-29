@@ -162,10 +162,10 @@ if [[ "$EVENT" == "prepare" && "$PHASE" == "begin" ]]; then
     # release/end 用此文件找到正确的 OVS port 名，避免产生 zombie port
     echo "$REP" > "/run/roce-hook-${INSTANCE_UUID}.rep"
 
-    # 2b. 设置 representor MTU 与 PF 一致（RoCE 需要大包，默认 1500 不够）
-    ip link set "$REP" mtu 9000 \
-        && _log "INFO $REP mtu=9000 配置成功" \
-        || _log "WARN $REP mtu 配置失败"
+    # 2b. 确保 representor UP 并设置 MTU（representor DOWN 会导致 VM 内 VF NO-CARRIER）
+    ip link set "$REP" up mtu 9000 \
+        && _log "INFO $REP up mtu=9000 配置成功" \
+        || _log "WARN $REP up/mtu 配置失败"
 
     ovs-vsctl set port "$REP" tag="$VLAN" vlan_mode=access \
         && _log "INFO $REP VLAN=$VLAN(access) 配置成功" \
