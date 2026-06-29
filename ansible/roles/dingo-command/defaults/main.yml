@@ -207,6 +207,7 @@ dingo_bear_default_volumes:
   - "/etc/localtime:/etc/localtime:ro"
   - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
   - "/var/log/kolla/dingo-bear:/var/log/dingo-bear/"
+  - "{{ dingo_command_workerdir_storage_local_path }}/:/var/lib/dingo-command/"
 dingo_bear_extra_volumes: "{{ default_extra_volumes }}"
 dingo_bear_dimensions: "{{ default_container_dimensions }}"
 
@@ -238,7 +239,7 @@ dingo_bear_recycle_max_nodes_per_job: 50
 dingo_bear_recycle_openstack_cloud: ""
 dingo_bear_recycle_region: ""
 dingo_bear_recycle_infraops_region: ""
-dingo_bear_recycle_infraops_repo_path: ""
+dingo_bear_recycle_infraops_repo_path: "/var/lib/dingo-command/infraops"
 dingo_bear_recycle_infraops_script_path: ""
 dingo_bear_recycle_infraops_wrapper_path: ""
 dingo_bear_recycle_infraops_auto_pull: false

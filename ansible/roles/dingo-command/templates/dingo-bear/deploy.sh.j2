@@ -20,7 +20,7 @@ if podman ps -a -f "name=${module_name}$" -q | grep -q .; then
 fi
 
 # 确保必要目录存在
-mkdir -p /etc/kolla/dingo-bear /var/log/kolla/dingo-bear /var/lib/dingo-command /var/lib/infraops
+mkdir -p /etc/kolla/dingo-bear /var/log/kolla/dingo-bear /var/lib/dingo-command
 
 # 构建运行命令（使用数组避免 eval）
 run_args=(
@@ -36,7 +36,6 @@ run_args=(
   -v /var/log/kolla/dingo-bear/:/var/log/dingo-bear/
   --mount type=bind,source=/run/netns,target=/run/netns,bind-propagation=shared
   -v /var/lib/dingo-command/:/var/lib/dingo-command/
-  -v /var/lib/infraops:/var/lib/infraops
   -v /root/.ssh:/root/.ssh:ro
   -e TZ=Asia/Shanghai
   --health-cmd 'curl -sf http://localhost:38887/v1 || exit 1'
