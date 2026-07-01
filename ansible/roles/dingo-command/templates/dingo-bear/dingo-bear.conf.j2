@@ -233,3 +233,10 @@ default_target_cluster_id = {{ dingo_bear_recycle_default_target_cluster_id }}
 
 [alert_platform]
 alert_platform_url = {{ alert_platform_url }}
+
+[notify]
+# 企微机器人告警(集群开通)。开关 + key 都在这里配,App 只读不回写。
+# 开关:默认开启;true 才发告警(还需 wecom_key 非空才会真正发送)
+wecom_enabled = {{ dingo_bear_wecom_enabled }}
+# 企微群机器人 webhook。可填裸 key,也可填完整 webhook URL(会自动从 ?key= 提取)。空则不发,创建页可临时手填
+wecom_key = {{ dingo_bear_wecom_key }}
