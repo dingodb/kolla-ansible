@@ -292,3 +292,6 @@ dingo_bear_services:
         tls_backend: "{{ dingo_bear_enable_tls_backend }}"
         backend_http_extra:
           - "option httpchk GET /docs"
+
+dingo_bear_wecom_enabled: false
+dingo_bear_wecom_key: ""
