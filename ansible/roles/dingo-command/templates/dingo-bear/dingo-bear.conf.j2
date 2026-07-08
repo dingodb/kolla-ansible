@@ -240,3 +240,11 @@ alert_platform_url = {{ alert_platform_url }}
 wecom_enabled = {{ dingo_bear_wecom_enabled }}
 # 企微群机器人 webhook。可填裸 key,也可填完整 webhook URL(会自动从 ?key= 提取)。空则不发,创建页可临时手填
 wecom_key = {{ dingo_bear_wecom_key }}
+
+[ib_probe]
+enabled = {{ dingo_bear_ib_probe_enabled }}
+interval = {{ dingo_bear_ib_probe_interval }}
+subnets = {{ dingo_bear_ib_probe_subnets }}
+interface = {{ dingo_bear_ib_probe_interface }}
+miss_threshold = {{ dingo_bear_ib_probe_miss_threshold }}
+evict_threshold = {{ dingo_bear_ib_probe_evict_threshold }}
