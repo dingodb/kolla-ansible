@@ -26,8 +26,7 @@ mkdir -p /etc/kolla/dingo-bear /var/log/kolla/dingo-bear /var/lib/dingo-command
 run_args=(
   run -d
   --privileged
-  -p "${node_port}:${node_port}"
-  -p "${frontend_port}:${frontend_port}"
+  --network=host
   -e "SKYLINE_URL=${skyline_url}"
   -e "KOLLA_SKIP_ALEMBIC=1"
   -e "DINGO_RUN_SYNCERS={{ '1' if inventory_hostname == groups['dingo-bear'][0] else '0' }}"
