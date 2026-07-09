@@ -1,4 +1,10 @@
 ---
+# baremetal provisioning driver written into dingo-bear.conf: ironic | dpu
+dingo_command_baremetal_provision_driver: "ironic"
+
+# dpu mode instance hostname transform 'old:new' (bj11: '-dpu-bf3-:-gpu-300b-')
+dingo_command_dpu_gpu_hostname_replace: ""
+
 dingo_command_services:
   dingo-command:
     container_name: dingo-command
