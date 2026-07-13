@@ -1,0 +1,145 @@
+---
+
+- name: Set dingo_bear fact
+  set_fact:
+    dingo_bear: "{{ dingo_bear_services['dingo-bear'] }}"
+
+- name: Creating dingo-bear database
+  become: true
+  kolla_toolbox:
+    container_engine: "{{ kolla_container_engine }}"
+    module_name: mysql_db
+    module_args:
+      login_host: "{{ database_address }}"
+      login_port: "{{ database_port }}"
+      login_user: "{{ dingo_command_database_shard_root_user }}"
+      login_password: "{{ database_password }}"
+      name: "{{ dingo_bear_database_name }}"
+  run_once: True
+  delegate_to: "{{ groups['dingo-command'][0] }}"
+  when:
+    - not use_preconfigured_databases | bool
+    - dingo_bear.enabled | bool
+
+- name: Creating dingo-bear database user and setting permissions
+  become: true
+  kolla_toolbox:
+    container_engine: "{{ kolla_container_engine }}"
+    module_name: mysql_user
+    module_args:
+      login_host: "{{ database_address }}"
+      login_port: "{{ database_port }}"
+      login_user: "{{ dingo_command_database_shard_root_user }}"
+      login_password: "{{ database_password }}"
+      name: "{{ dingo_bear_database_user }}"
+      password: "{{ dingo_bear_database_password }}"
+      host: "%"
+      priv: "{{ dingo_bear_database_name }}.*:ALL"
+      append_privs: "yes"
+  run_once: True
+  delegate_to: "{{ groups['dingo-command'][0] }}"
+  when:
+    - not use_preconfigured_databases | bool
+    - dingo_bear.enabled | bool
+
+- name: Pull dingo-bear image
+  become: true
+  kolla_container:
+    action: "pull_image"
+    common_options: "{{ docker_common_options }}"
+    image: "{{ dingo_bear_image_full }}"
+  when:
+    - dingo_bear.enabled | bool
+    
+- name: Ensuring /var/log/dingo-bear directory exists
+  file:
+    path: "/var/log/kolla/dingo-bear"
+    state: "directory"
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "0770"
+  become: true
+  when:
+    - dingo_bear.enabled | bool
+
+- name: Ensuring /etc/kolla/dingo-bear directory exists
+  file:
+    path: "{{ node_config_directory }}/dingo-bear"
+    state: "directory"
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "0770"
+  become: true
+  when:
+    - dingo_bear.enabled | bool
+
+
+- name: Copying over dingo-bear.conf
+  template:
+    src: "{{ role_path }}/templates/dingo-bear/dingo-bear.conf.j2"
+    dest: "{{ node_config_directory }}/dingo-bear/dingo-bear.conf"
+    mode: "0660"
+  become: true
+  when:
+    - dingo_bear.enabled | bool
+
+- name: Copying over supervisord.conf
+  template:
+    src: "{{ role_path }}/templates/dingo-bear/supervisord.conf"
+    dest: "{{ node_config_directory }}/dingo-bear/supervisord.conf"
+    mode: "0660"
+  become: true
+  when:
+    - dingo_bear.enabled | bool
+    
+    
+- name: Copying over gunicorn.py
+  template:
+    src: "{{ role_path }}/templates/dingo-bear/gunicorn.py"
+    dest: "{{ node_config_directory }}/dingo-bear/gunicorn.py"
+    mode: "0660"
+  become: true
+  when:
+    - dingo_bear.enabled | bool
+
+- name: Copying over nginx.conf
+  template:
+    src: "{{ role_path }}/templates/dingo-bear/nginx.conf.j2"
+    dest: "{{ node_config_directory }}/dingo-bear/nginx.conf"
+    mode: "0660"
+  become: true
+  when:
+    - dingo_bear.enabled | bool
+
+
+- name: Copy deploy.sh to target node
+  template:
+    src: "{{ role_path }}/templates/dingo-bear/deploy.sh.j2"
+    dest: "/tmp/deploy-bear.sh"
+    mode: "0755"
+  become: true
+  when:
+    - dingo_bear.enabled | bool
+
+- name: Execute deploy-bear.sh
+  command: >
+    bash /tmp/deploy-bear.sh
+    "{{ dingo_bear_image_full }}"
+  become: true
+  register: deploy_bear_result
+  when:
+    - dingo_bear.enabled | bool
+
+- name: Show deploy-bear.sh output
+  debug:
+    msg: "{{ deploy_bear_result.stdout_lines }}"
+  when:
+    - dingo_bear.enabled | bool
+
+
+
+
+
+    
+
+

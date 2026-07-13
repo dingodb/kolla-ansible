@@ -1,0 +1,43 @@
+server {
+    listen 30000;
+    root /opt/dingo-aurora/frontend/dist;
+    index index.html;
+
+    # SPA fallback
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # WebSocket: cluster web terminal (/v1/ws/{cluster_id}). The plain /v1 proxy
+    # below drops the HTTP/1.1 Upgrade handshake, so the browser sees
+    # "WebSocket connection failed". More specific prefix wins, REST on /v1 untouched.
+    location /v1/ws/ {
+        proxy_pass http://127.0.0.1:38887;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+    }
+
+    # Proxy API requests to FastAPI backend
+    location /v1 {
+        proxy_pass http://127.0.0.1:38887;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+    }
+
+    # Proxy Skyline for login (strip /skyline prefix)
+    location /skyline/ {
+        proxy_pass {{ dingo_bear_skyline_url }}/;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}

@@ -5,3 +5,10 @@
   vars:
     project_services: "{{ dingo_command_services }}"
   tags: always
+
+- name: "Configure loadbalancer for dingo-bear"
+  import_role:
+    name: loadbalancer-config
+  vars:
+    project_services: "{{ dingo_bear_services }}"
+  tags: always

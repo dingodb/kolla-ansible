@@ -28,6 +28,36 @@ dingo_command_services:
         tls_backend: "{{ dingo_command_enable_tls_backend }}"
         backend_http_extra:
           - "option httpchk GET /docs"
+  
+dingo_bear_services:
+  dingo-bear:
+    container_name: dingo-bear
+    group: dingo-bear
+    enabled: true
+    image: "{{ dingo_bear_image_full }}"
+    volumes: "{{ dingo_bear_default_volumes + dingo_bear_extra_volumes }}"
+    dimensions: "{{ dingo_bear_dimensions }}"
+    healthcheck: "{{ dingo_bear_healthcheck }}"
+    haproxy:
+      dingo-bear:
+        enabled: "{{ enable_dingo_bear }}"
+        mode: "http"
+        external: false
+        port: "{{ dingo_bear_port }}"
+        listen_port: "{{ dingo_bear_listen_port }}"
+        tls_backend: "{{ dingo_bear_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+      dingo_bear_external:
+        enabled: "{{ enable_dingo_bear }}"
+        mode: "http"
+        external: true
+        external_fqdn: "{{ dingo_bear_external_fqdn }}"
+        port: "{{ dingo_bear_port }}"
+        listen_port: "{{ dingo_bear_listen_port }}"
+        tls_backend: "{{ dingo_bear_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
 
 dingo_command_database_address: "{{ database_address | put_address_in_context('url') }}:{{ database_port }}"
 dingo_command_tag: "{{ openstack_tag }}"
@@ -141,3 +171,127 @@ aliyun_clickhouse_port: 8123
 aliyun_clickhouse_user: "user01"
 aliyun_clickhouse_password: "YourStrongPassword123!"
 aliyun_clickhouse_database: "bsm_monitor"
+
+metric_write_dingo: false
+metric_write_clickhouse: true
+openstack_lb_method: "ROUND_ROBIN"
+openstack_lb_provider: "amphora"
+
+dingo_bear_tag: "{{ openstack_tag }}"
+dingo_bear_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/dingo-bear"
+dingo_bear_image_full: "{{ dingo_bear_image }}:{{ dingo_bear_tag }}"
+
+
+dingo_bear_database_user: "{{ dingo_command_database_user }}"
+dingo_bear_database_password: "{{ dingo_command_database_password }}"
+dingo_bear_database_name: "dingo-bear"
+dingo_bear_database_shard_root_user: "{% if enable_proxysql | bool %}root_shard_{{ dingo_bear_database_shard_id }}{% else %}{{ database_user }}{% endif %}"
+dingo_bear_database_shard_id: "{{ mariadb_default_database_shard_id | int }}"
+dingo_bear_database_shard:
+  users:
+    - user: "{{ dingo_bear_database_user }}"
+      password: "{{ dingo_bear_database_password }}"
+  rules:
+    - schema: "{{ dingo_bear_database_name }}"
+      shard_id: "{{ dingo_bear_database_shard_id }}"
+dingo_bear_port: 38887
+dingo_bear_frontend_port: 30000
+dingo_bear_listen_port: "{{ dingo_bear_port }}"
+dingo_bear_skyline_url: "http://{{ kolla_internal_vip_address }}:9999"
+dingo_bear_database_address: "{{ database_address }}:{{ database_port }}"
+dingo_bear_enable_tls_backend: "{{ kolla_enable_tls_backend }}"
+dingo_bear_external_fqdn: "{{ dingo_command_external_fqdn }}"
+dingo_bear_config_directory: "/etc/dingo-bear"
+dingo_bear_default_volumes:
+  - "{{ node_config_directory }}/dingo-bear:{{ dingo_bear_config_directory }}/:ro"
+  - "/etc/localtime:/etc/localtime:ro"
+  - "{{ '/etc/timezone:/etc/timezone:ro' if ansible_facts.os_family == 'Debian' else '' }}"
+  - "/var/log/kolla/dingo-bear:/var/log/dingo-bear/"
+  - "{{ dingo_command_workerdir_storage_local_path }}/:/var/lib/dingo-command/"
+dingo_bear_extra_volumes: "{{ default_extra_volumes }}"
+dingo_bear_dimensions: "{{ default_container_dimensions }}"
+
+dingo_bear_enable_healthchecks: "{{ enable_container_healthchecks }}"
+dingo_bear_healthcheck_interval: "{{ default_container_healthcheck_interval }}"
+dingo_bear_healthcheck_retries: "{{ default_container_healthcheck_retries }}"
+dingo_bear_healthcheck_start_period: "{{ default_container_healthcheck_start_period }}"
+dingo_bear_healthcheck_test: ["CMD-SHELL", "curl --max-time 10 http://{{ api_interface_address | put_address_in_context('url') }}:{{ dingo_bear_listen_port }}/docs"]
+dingo_bear_healthcheck_timeout: "{{ default_container_healthcheck_timeout }}"
+dingo_bear_healthcheck:
+  interval: "{{ dingo_bear_healthcheck_interval }}"
+  retries: "{{ dingo_bear_healthcheck_retries }}"
+  start_period: "{{ dingo_bear_healthcheck_start_period }}"
+  test: "{% if dingo_bear_enable_healthchecks | bool %}{{ dingo_bear_healthcheck_test }}{% else %}NONE{% endif %}"
+  timeout: "{{ dingo_bear_healthcheck_timeout }}"
+
+dingo_bear_recycle_project_id: ""
+dingo_bear_recycle_image_id: ""
+dingo_bear_recycle_flavor_id: ""
+dingo_bear_recycle_network_id: ""
+dingo_bear_recycle_ssh_user: "root"
+dingo_bear_recycle_ssh_password: ""
+dingo_bear_recycle_download_package_enable: false
+dingo_bear_recycle_download_server_url: ""
+dingo_bear_recycle_image_registry: ""
+dingo_bear_recycle_enabled: true
+dingo_bear_recycle_tenant_regions: []
+dingo_bear_recycle_max_nodes_per_job: 50
+dingo_bear_recycle_openstack_cloud: ""
+dingo_bear_recycle_region: ""
+dingo_bear_recycle_infraops_region: ""
+dingo_bear_recycle_infraops_repo_path: "/var/lib/dingo-command/infraops"
+dingo_bear_recycle_infraops_script_path: ""
+dingo_bear_recycle_infraops_wrapper_path: ""
+dingo_bear_recycle_infraops_auto_pull: false
+dingo_bear_recycle_infraops_pull_branch: "release"
+dingo_bear_recycle_infraops_forks: 20
+dingo_bear_recycle_work_base_dir: "/var/lib/dingo-command/recycle"
+dingo_bear_recycle_ssh_private_key_path: ""
+dingo_bear_recycle_thread_pool_workers: 30
+dingo_bear_recycle_ironic_available_timeout: 900
+dingo_bear_recycle_placement_settle_timeout: 90
+dingo_bear_recycle_server_active_timeout: 3600
+dingo_bear_recycle_ssh_connect_timeout: 1800
+dingo_bear_recycle_post_check_timeout: 300
+dingo_bear_recycle_gpu_capacity_timeout: 900
+dingo_bear_recycle_infraops_timeout_per_10_nodes: 5400
+dingo_bear_recycle_stage_abnormal_ratio: "1.5"
+dingo_bear_recycle_allow_target_types:
+  - "bare_metal_pool"
+  - "cci"
+  - "vks"
+dingo_bear_recycle_queue: ""
+dingo_bear_recycle_default_target_cluster_id: ""
+
+dingo_bear_services:
+  dingo-bear:
+    container_name: dingo-bear
+    group: dingo-bear
+    enabled: true
+    image: "{{ dingo_bear_image_full }}"
+    volumes: "{{ dingo_bear_default_volumes + dingo_bear_extra_volumes }}"
+    dimensions: "{{ dingo_bear_dimensions }}"
+    healthcheck: "{{ dingo_bear_healthcheck }}"
+    haproxy:
+      dingo-bear:
+        enabled: "{{ enable_dingo_bear }}"
+        mode: "http"
+        external: false
+        port: "{{ dingo_bear_port }}"
+        listen_port: "{{ dingo_bear_listen_port }}"
+        tls_backend: "{{ dingo_bear_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+      dingo_bear_external:
+        enabled: "{{ enable_dingo_bear }}"
+        mode: "http"
+        external: true
+        external_fqdn: "{{ dingo_bear_external_fqdn }}"
+        port: "{{ dingo_bear_port }}"
+        listen_port: "{{ dingo_bear_listen_port }}"
+        tls_backend: "{{ dingo_bear_enable_tls_backend }}"
+        backend_http_extra:
+          - "option httpchk GET /docs"
+
+dingo_bear_wecom_enabled: false
+dingo_bear_wecom_key: ""
