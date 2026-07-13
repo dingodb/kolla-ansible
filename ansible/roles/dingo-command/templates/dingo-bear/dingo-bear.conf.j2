@@ -4,7 +4,7 @@ region_name = {{ dingo_command_region_name }}
 aidc_name = {{ dingo_command_aidc_name }}
 # 是否是中心region的标志 黄海是True 其他是False
 center_region_flag = {{ dingo_command_center_region_flag }}
-cluster_work_dir = /var/lib/dingo-command
+cluster_work_dir = /var/lib/dingo-command/dingo-bear
 my_ip = {{ api_interface_address }}
 vip = {{ kolla_internal_fqdn }}
 transport_url = {{ rpc_transport_url }}
@@ -37,7 +37,7 @@ maas_api_key = {{ maas_api_key }}
 maas_llm_url = {{ maas_llm_url }}
 
 [database]
-connection = mysql+pymysql://{{ dingo_command_database_user }}:{{ dingo_command_database_password }}@{{ dingo_command_database_address }}/dingoops?charset=utf8mb3
+connection = mysql+pymysql://{{ dingo_bear_database_user }}:{{ dingo_bear_database_password }}@{{ dingo_bear_database_address }}/dingo-bear?charset=utf8mb3
 
 
 [bigscreen]
@@ -194,8 +194,49 @@ netowrk_id = {{ openclaw_openstack_network_id }}
 subnet_id = {{ openclaw_openstack_subnet_id }}
 ssh_user = {{ openclaw_ssh_user }}
 
+[recycle]
+project_id = {{ dingo_bear_recycle_project_id }}
+image_id = {{ dingo_bear_recycle_image_id }}
+flavor_id = {{ dingo_bear_recycle_flavor_id }}
+network_id = {{ dingo_bear_recycle_network_id }}
+ssh_user = {{ dingo_bear_recycle_ssh_user }}
+ssh_password = {{ dingo_bear_recycle_ssh_password }}
+download_package_enable = {{ dingo_bear_recycle_download_package_enable }}
+download_server_url = {{ dingo_bear_recycle_download_server_url }}
+image_registry = {{ dingo_bear_recycle_image_registry }}
+enabled = {{ dingo_bear_recycle_enabled }}
+tenant_regions = {{ dingo_bear_recycle_tenant_regions | join(',') }}
+max_nodes_per_job = {{ dingo_bear_recycle_max_nodes_per_job }}
+openstack_cloud = {{ dingo_bear_recycle_openstack_cloud }}
+region = {{ dingo_bear_recycle_region }}
+infraops_region = {{ dingo_bear_recycle_infraops_region }}
+infraops_repo_path = {{ dingo_bear_recycle_infraops_repo_path }}
+infraops_script_path = {{ dingo_bear_recycle_infraops_script_path }}
+infraops_wrapper_path = {{ dingo_bear_recycle_infraops_wrapper_path }}
+infraops_auto_pull = {{ dingo_bear_recycle_infraops_auto_pull }}
+infraops_pull_branch = {{ dingo_bear_recycle_infraops_pull_branch }}
+infraops_forks = {{ dingo_bear_recycle_infraops_forks }}
+work_base_dir = {{ dingo_bear_recycle_work_base_dir }}
+ssh_private_key_path = {{ dingo_bear_recycle_ssh_private_key_path }}
+thread_pool_workers = {{ dingo_bear_recycle_thread_pool_workers }}
+ironic_available_timeout = {{ dingo_bear_recycle_ironic_available_timeout }}
+placement_settle_timeout = {{ dingo_bear_recycle_placement_settle_timeout }}
+server_active_timeout = {{ dingo_bear_recycle_server_active_timeout }}
+ssh_connect_timeout = {{ dingo_bear_recycle_ssh_connect_timeout }}
+post_check_timeout = {{ dingo_bear_recycle_post_check_timeout }}
+gpu_capacity_timeout = {{ dingo_bear_recycle_gpu_capacity_timeout }}
+infraops_timeout_per_10_nodes = {{ dingo_bear_recycle_infraops_timeout_per_10_nodes }}
+stage_abnormal_ratio = {{ dingo_bear_recycle_stage_abnormal_ratio }}
+allow_target_types = {{ dingo_bear_recycle_allow_target_types | join(',') }}
+recycle_queue = {{ dingo_bear_recycle_queue }}
+default_target_cluster_id = {{ dingo_bear_recycle_default_target_cluster_id }}
+
 [alert_platform]
 alert_platform_url = {{ alert_platform_url }}
 
-[manila_share_types]
-share_type_mapping = {{ dingo_command_manila_share_types_mapping }}
+[notify]
+# 企微机器人告警(集群开通)。开关 + key 都在这里配,App 只读不回写。
+# 开关:默认开启;true 才发告警(还需 wecom_key 非空才会真正发送)
+wecom_enabled = {{ dingo_bear_wecom_enabled }}
+# 企微群机器人 webhook。可填裸 key,也可填完整 webhook URL(会自动从 ?key= 提取)。空则不发,创建页可临时手填
+wecom_key = {{ dingo_bear_wecom_key }}
