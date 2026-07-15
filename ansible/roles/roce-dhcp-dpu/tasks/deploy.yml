@@ -64,14 +64,14 @@
 - name: Install roce-gc-dpu-ovs.sh
   become: true
   copy:
-    src: "{{ playbook_dir }}/files/roce-gc-dpu-ovs.sh"
+    src: roce-gc-dpu-ovs.sh
     dest: /usr/local/bin/roce-gc-dpu-ovs.sh
     mode: '0755'
 
 - name: Install roce-gc-dpu-ovs systemd units
   become: true
   copy:
-    src: "{{ playbook_dir }}/files/{{ item }}"
+    src: "{{ item }}"
     dest: "/etc/systemd/system/{{ item }}"
     mode: '0644'
   loop:

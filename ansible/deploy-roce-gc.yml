@@ -32,20 +32,20 @@
 
     - name: Render GC env (VIP + DB password, root only)
       template:
-        src: roce-gc-ctrl.env.j2
+        src: "{{ playbook_dir }}/roles/roce-dhcp/templates/roce-gc-ctrl.env.j2"
         dest: /etc/kolla/roce-gc/gc.env
         mode: '0600'
       no_log: true
 
     - name: Install roce-gc-ctrl.sh
       copy:
-        src: roce-gc-ctrl.sh
+        src: "{{ playbook_dir }}/roles/roce-dhcp/files/roce-gc-ctrl.sh"
         dest: /usr/local/bin/roce-gc-ctrl.sh
         mode: '0755'
 
     - name: Install roce-gc-ctrl systemd units
       copy:
-        src: "{{ item }}"
+        src: "{{ playbook_dir }}/roles/roce-dhcp/files/{{ item }}"
         dest: "/etc/systemd/system/{{ item }}"
         mode: '0644'
       loop:
@@ -71,13 +71,13 @@
   tasks:
     - name: Install roce-gc-dpu-ovs.sh
       copy:
-        src: roce-gc-dpu-ovs.sh
+        src: "{{ playbook_dir }}/roles/roce-dhcp-dpu/files/roce-gc-dpu-ovs.sh"
         dest: /usr/local/bin/roce-gc-dpu-ovs.sh
         mode: '0755'
 
     - name: Install roce-gc-dpu-ovs systemd units
       copy:
-        src: "{{ item }}"
+        src: "{{ playbook_dir }}/roles/roce-dhcp-dpu/files/{{ item }}"
         dest: "/etc/systemd/system/{{ item }}"
         mode: '0644'
       loop:
