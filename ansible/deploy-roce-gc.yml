@@ -1,0 +1,92 @@
+---
+# RoCE 孤儿资源清理 GC 部署（外挂式，不改动任何现有 roce-dhcp 逻辑）
+#
+# 节点全部取自 inventory service group，无任何硬编码 IP，可直接用于生产：
+#   control         —— DB 记录 GC（podman exec mariadb，GET_LOCK 单活主备 + 自动 failover）
+#   roce-dhcp-dpu   —— DPU br-ex 残留 SF 口清理（纯 ovs-vsctl，No such device 判据）
+# VIP 取自 kolla_internal_vip_address，密码取自 nova_database_password（passwords.yml）。
+#
+# 用法（部署节点，source /root/venv/bin/activate 后）：
+#   ansible-playbook -i /root/multinode \
+#     -e @/etc/kolla/globals.yml -e @/etc/kolla/passwords.yml \
+#     deploy-roce-gc.yml
+#
+# 只部署其中一层：--tags roce-gc-ctrl  或  --tags roce-gc-dpu
+# 与 roce-dhcp 一样受 enable_roce_dhcp 开关控制（未开则整场跳过）。
+
+- name: Deploy RoCE DB-record GC on control nodes
+  hosts: control
+  gather_facts: false
+  become: true
+  tags: [roce-gc, roce-gc-ctrl]
+  pre_tasks:
+    - name: Skip if roce is not enabled
+      meta: end_play
+      when: not (enable_roce_dhcp | default('no') | bool)
+  tasks:
+    - name: Create roce-gc config dir
+      file:
+        path: /etc/kolla/roce-gc
+        state: directory
+        mode: '0750'
+
+    - name: Render GC env (VIP + DB password, root only)
+      template:
+        src: roce-gc-ctrl.env.j2
+        dest: /etc/kolla/roce-gc/gc.env
+        mode: '0600'
+      no_log: true
+
+    - name: Install roce-gc-ctrl.sh
+      copy:
+        src: roce-gc-ctrl.sh
+        dest: /usr/local/bin/roce-gc-ctrl.sh
+        mode: '0755'
+
+    - name: Install roce-gc-ctrl systemd units
+      copy:
+        src: "{{ item }}"
+        dest: "/etc/systemd/system/{{ item }}"
+        mode: '0644'
+      loop:
+        - roce-gc-ctrl.service
+        - roce-gc-ctrl.timer
+
+    - name: Enable and start roce-gc-ctrl.timer
+      systemd:
+        name: roce-gc-ctrl.timer
+        enabled: true
+        state: started
+        daemon_reload: true
+
+- name: Deploy RoCE OVS stale-SF cleanup on DPU nodes
+  hosts: roce-dhcp-dpu
+  gather_facts: false
+  become: true
+  tags: [roce-gc, roce-gc-dpu]
+  pre_tasks:
+    - name: Skip if roce is not enabled
+      meta: end_play
+      when: not (enable_roce_dhcp | default('no') | bool)
+  tasks:
+    - name: Install roce-gc-dpu-ovs.sh
+      copy:
+        src: roce-gc-dpu-ovs.sh
+        dest: /usr/local/bin/roce-gc-dpu-ovs.sh
+        mode: '0755'
+
+    - name: Install roce-gc-dpu-ovs systemd units
+      copy:
+        src: "{{ item }}"
+        dest: "/etc/systemd/system/{{ item }}"
+        mode: '0644'
+      loop:
+        - roce-gc-dpu-ovs.service
+        - roce-gc-dpu-ovs.timer
+
+    - name: Enable and start roce-gc-dpu-ovs.timer
+      systemd:
+        name: roce-gc-dpu-ovs.timer
+        enabled: true
+        state: started
+        daemon_reload: true

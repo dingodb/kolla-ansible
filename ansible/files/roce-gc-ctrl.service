@@ -1,0 +1,8 @@
+[Unit]
+Description=RoCE orphan DB-record GC (control plane, single-active via GET_LOCK)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/roce-gc-ctrl.sh

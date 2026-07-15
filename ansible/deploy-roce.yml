@@ -50,3 +50,48 @@
       when: not (enable_roce_dhcp | default('no') | bool)
   roles:
     - role: roce-dhcp-dpu
+
+- name: Deploy RoCE DB-record GC on control nodes
+  hosts: control
+  gather_facts: false
+  become: true
+  tags: [roce-dhcp, roce-gc-ctrl]
+  pre_tasks:
+    - name: Skip if roce is not enabled
+      meta: end_play
+      when: not (enable_roce_dhcp | default('no') | bool)
+  tasks:
+    - name: Create roce-gc config dir
+      file:
+        path: /etc/kolla/roce-gc
+        state: directory
+        mode: '0750'
+
+    - name: Render GC env (VIP + DB password, root only)
+      template:
+        src: roce-gc-ctrl.env.j2
+        dest: /etc/kolla/roce-gc/gc.env
+        mode: '0600'
+      no_log: true
+
+    - name: Install roce-gc-ctrl.sh
+      copy:
+        src: roce-gc-ctrl.sh
+        dest: /usr/local/bin/roce-gc-ctrl.sh
+        mode: '0755'
+
+    - name: Install roce-gc-ctrl systemd units
+      copy:
+        src: "{{ item }}"
+        dest: "/etc/systemd/system/{{ item }}"
+        mode: '0644'
+      loop:
+        - roce-gc-ctrl.service
+        - roce-gc-ctrl.timer
+
+    - name: Enable and start roce-gc-ctrl timer
+      systemd:
+        name: roce-gc-ctrl.timer
+        enabled: true
+        state: started
+        daemon_reload: true

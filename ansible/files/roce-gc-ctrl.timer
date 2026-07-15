@@ -1,0 +1,11 @@
+[Unit]
+Description=RoCE DB-record GC timer (every 5 min)
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+AccuracySec=30s
+RandomizedDelaySec=20s
+
+[Install]
+WantedBy=timers.target

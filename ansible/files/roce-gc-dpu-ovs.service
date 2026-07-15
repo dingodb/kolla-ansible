@@ -1,0 +1,7 @@
+[Unit]
+Description=RoCE DPU OVS stale SF-port cleanup
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/roce-gc-dpu-ovs.sh
