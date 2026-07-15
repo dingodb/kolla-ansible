@@ -55,7 +55,7 @@
   hosts: control
   gather_facts: false
   become: true
-  tags: [roce-dhcp, roce-gc-ctrl]
+  tags: [roce-dhcp, roce-dhcp-dpu, roce-gc-ctrl]
   pre_tasks:
     - name: Skip if roce is not enabled
       meta: end_play
