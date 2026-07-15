@@ -61,6 +61,31 @@
     state: started
     daemon_reload: true
 
+- name: Install roce-gc-dpu-ovs.sh
+  become: true
+  copy:
+    src: "{{ playbook_dir }}/files/roce-gc-dpu-ovs.sh"
+    dest: /usr/local/bin/roce-gc-dpu-ovs.sh
+    mode: '0755'
+
+- name: Install roce-gc-dpu-ovs systemd units
+  become: true
+  copy:
+    src: "{{ playbook_dir }}/files/{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: '0644'
+  loop:
+    - roce-gc-dpu-ovs.service
+    - roce-gc-dpu-ovs.timer
+
+- name: Enable and start roce-gc-dpu-ovs timer
+  become: true
+  systemd:
+    name: roce-gc-dpu-ovs.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
 - name: Update nova.conf [dpu] section
   become: true
   ini_file:
