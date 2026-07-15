@@ -1130,6 +1130,15 @@ class DPUDriver(virt_driver.ComputeDriver):
                                     'reason': str(e)},
                                    instance=instance)
             
+            # Cleanup RoCE SF（只删本地 SF，不调 deregister，reboot 期间 DB 分配记录保留）
+            try:
+                self.roce_sf_client.remove_roce_interface(instance.uuid)
+                LOG.debug("Removed RoCE SF for instance %s", instance.uuid,
+                          instance=instance)
+            except Exception as e:
+                LOG.warning("Failed to remove RoCE SF for instance %s: %s",
+                            instance.uuid, e, instance=instance)
+
             # Cleanup config drive (detach from SPDK only; keep ISO for power_on)
             try:
                 self.configdrive_manager.cleanup_configdrive(instance, delete_iso=False)
@@ -1406,6 +1415,13 @@ class DPUDriver(virt_driver.ComputeDriver):
                                    instance=instance)
                         # Continue with other interfaces even if one fails
             
+            # Restore RoCE SF（register 幂等，返回已有分配；重建 SF 时应用新的 max_io_eqs）
+            try:
+                self._setup_roce(instance, instance.flavor)
+            except Exception as e:
+                LOG.warning("Failed to restore RoCE SF for instance %s: %s",
+                            instance.uuid, e, instance=instance)
+
             # Restore configdrive if it exists
             try:
                 if configdrive.required_by(instance):
