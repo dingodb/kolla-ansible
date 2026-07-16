@@ -1,0 +1,209 @@
+---
+# ── 步骤1：CX7 切换 switchdev 模式 ────────────────────────────────────────────
+# 需要接口 DOWN 再 UP，会有短暂网络中断（bond0 会 failover）
+# 已在 switchdev 模式时该步骤幂等跳过
+
+- name: Check current CX7 eswitch mode
+  shell: |
+    for pci in {{ ovs_doca_pf_pci_list.split(',') | join(' ') }}; do
+      mode=$(mlnx_devlink dev eswitch show pci/$pci 2>/dev/null \
+             || devlink dev eswitch show pci/$pci 2>/dev/null \
+             || echo "mode legacy")
+      echo "$pci: $mode"
+    done
+  register: eswitch_mode_out
+  changed_when: false
+
+- name: Switch CX7 PFs to switchdev mode
+  shell: |
+    set -e
+    DEVLINK_CMD=$(which mlnx_devlink 2>/dev/null || which devlink 2>/dev/null)
+    for pci in {{ ovs_doca_pf_pci_list.split(',') | join(' ') }}; do
+      mode=$($DEVLINK_CMD dev eswitch show pci/$pci 2>/dev/null | grep -oP 'mode \K\w+' || echo legacy)
+      if [ "$mode" = "switchdev" ]; then
+        echo "$pci already in switchdev mode, skipping"
+        continue
+      fi
+      # 找到对应的网卡接口名
+      iface=$(ls /sys/bus/pci/devices/$pci/net/ 2>/dev/null | head -1)
+      if [ -n "$iface" ]; then
+        ip link set $iface down
+      fi
+      $DEVLINK_CMD dev eswitch set pci/$pci mode switchdev
+      if [ -n "$iface" ]; then
+        ip link set $iface up
+      fi
+      echo "$pci -> switchdev done"
+    done
+  when: eswitch_mode_out.stdout is search('legacy')
+  register: switchdev_result
+
+- name: Wait for CX7 switchdev representors to appear
+  pause:
+    seconds: 3
+  when: switchdev_result is changed
+
+# ── 步骤2：停止 kolla OVS 容器 ────────────────────────────────────────────────
+- name: Stop and disable kolla openvswitch containers
+  shell: |
+    for svc in openvswitch_vswitchd openvswitch_db; do
+      if systemctl is-active --quiet $svc 2>/dev/null; then
+        systemctl stop $svc
+        systemctl disable $svc
+        echo "stopped $svc"
+      fi
+    done
+  changed_when: true
+
+# ── 步骤3：清理 schema 不兼容的旧 conf.db ─────────────────────────────────────
+# kolla OVS 3.4.4 用 schema 8.8.0，DOCA 3.3.0040 用 8.5.1，无法向下兼容
+- name: Check existing conf.db schema version
+  shell: |
+    DBFILE=/var/lib/containers/storage/volumes/{{ ovs_doca_db_volume }}/_data/conf.db
+    if [ -f "$DBFILE" ]; then
+      python3 -c "
+import json
+with open('$DBFILE') as f:
+    data = json.load(f)
+print(data.get('schema_version', 'unknown'))
+" 2>/dev/null || echo "unreadable"
+    else
+      echo "notfound"
+    fi
+  register: db_schema_check
+  changed_when: false
+
+- name: Backup and remove incompatible conf.db
+  shell: |
+    DBFILE=/var/lib/containers/storage/volumes/{{ ovs_doca_db_volume }}/_data/conf.db
+    if [ -f "$DBFILE" ]; then
+      cp "$DBFILE" "${DBFILE}.bak.$(date +%Y%m%d%H%M%S)"
+      rm -f "$DBFILE"
+      echo "backed up and removed conf.db (schema {{ db_schema_check.stdout }})"
+    fi
+  when: db_schema_check.stdout not in ['notfound', '8.5.1']
+  register: db_backup_result
+
+# ── 步骤4：拉取 DOCA OVS 镜像 ─────────────────────────────────────────────────
+- name: Pull DOCA OVS DB image
+  shell: podman pull --tls-verify=false {{ ovs_doca_db_image }}
+  register: pull_db
+  changed_when: "'Image is up to date' not in pull_db.stdout"
+
+- name: Pull DOCA OVS vswitchd image
+  shell: podman pull --tls-verify=false {{ ovs_doca_vswitchd_image }}
+  register: pull_vswitchd
+  changed_when: "'Image is up to date' not in pull_vswitchd.stdout"
+
+# ── 步骤5：部署 systemd 服务 ───────────────────────────────────────────────────
+- name: Install ovs-doca-db systemd service
+  template:
+    src: ovs-doca-db.service.j2
+    dest: /etc/systemd/system/ovs-doca-db.service
+    mode: '0644'
+  notify: restart ovs-doca-db
+
+- name: Install ovs-doca-vswitchd systemd service
+  template:
+    src: ovs-doca-vswitchd.service.j2
+    dest: /etc/systemd/system/ovs-doca-vswitchd.service
+    mode: '0644'
+  notify: restart ovs-doca-vswitchd
+
+- name: Enable and start ovs-doca-db
+  systemd:
+    name: ovs-doca-db
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for ovsdb socket to appear
+  wait_for:
+    path: /run/openvswitch/db.sock
+    timeout: 30
+
+- name: Enable and start ovs-doca-vswitchd
+  systemd:
+    name: ovs-doca-vswitchd
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for ovs-vswitchd to be ready
+  shell: podman exec ovs-doca-vswitchd ovs-vsctl show
+  register: vswitchd_ready
+  retries: 15
+  delay: 2
+  until: vswitchd_ready.rc == 0
+
+# ── 步骤6：配置 OVS datapath 和 hardware offload ──────────────────────────────
+- name: Set OVS datapath_type and hw-offload options
+  shell: |
+    OVS="podman exec ovs-doca-vswitchd ovs-vsctl"
+    $OVS set Open_vSwitch . \
+        other_config:hw-offload={{ ovs_doca_hw_offload }} \
+        other_config:doca-init={{ ovs_doca_doca_init }}
+  changed_when: true
+
+# ── 步骤7：重建 br-ex ──────────────────────────────────────────────────────────
+- name: Check if br-ex already exists
+  shell: podman exec ovs-doca-vswitchd ovs-vsctl br-exists {{ ovs_doca_bridge }}
+  register: brex_exists
+  failed_when: false
+  changed_when: false
+
+- name: Create br-ex bridge
+  shell: |
+    OVS="podman exec ovs-doca-vswitchd ovs-vsctl"
+    $OVS add-br {{ ovs_doca_bridge }}
+    $OVS set bridge {{ ovs_doca_bridge }} \
+        fail_mode={{ ovs_doca_bridge_fail_mode }} \
+        datapath_type={{ ovs_doca_datapath_type }}
+  when: brex_exists.rc != 0
+
+- name: Set br-ex datapath_type if bridge exists
+  shell: |
+    podman exec ovs-doca-vswitchd ovs-vsctl \
+      set bridge {{ ovs_doca_bridge }} datapath_type={{ ovs_doca_datapath_type }}
+  when: brex_exists.rc == 0
+  changed_when: true
+
+- name: Check if uplink already in br-ex
+  shell: |
+    podman exec ovs-doca-vswitchd ovs-vsctl list-ports {{ ovs_doca_bridge }} \
+      | grep -qx {{ ovs_doca_uplink }}
+  register: uplink_exists
+  failed_when: false
+  changed_when: false
+
+- name: Add uplink to br-ex
+  shell: |
+    podman exec ovs-doca-vswitchd ovs-vsctl \
+      add-port {{ ovs_doca_bridge }} {{ ovs_doca_uplink }}
+  when: uplink_exists.rc != 0
+
+# ── 步骤8：重启 ovn_controller 重新建立 br-int 和 Geneve 隧道 ──────────────────
+- name: Restart ovn_controller to repopulate br-int flows
+  shell: |
+    if systemctl is-active --quiet ovn_controller 2>/dev/null; then
+      systemctl restart ovn_controller
+    elif podman ps --filter name=ovn_controller --format '{{.Names}}' | grep -q ovn_controller; then
+      systemctl restart ovn_controller
+    fi
+  changed_when: true
+
+- name: Verify OVS-DOCA is running
+  shell: |
+    echo "=== OVS version ==="
+    podman exec ovs-doca-vswitchd ovs-vsctl --version | head -1
+    echo "=== br-ex config ==="
+    podman exec ovs-doca-vswitchd ovs-vsctl list bridge {{ ovs_doca_bridge }} \
+      | grep -E "datapath_type|hw_offload|doca_init" || true
+    echo "=== other_config ==="
+    podman exec ovs-doca-vswitchd ovs-vsctl get Open_vSwitch . other_config
+  register: verify_out
+  changed_when: false
+
+- name: Show OVS-DOCA status
+  debug:
+    msg: "{{ verify_out.stdout_lines }}"
