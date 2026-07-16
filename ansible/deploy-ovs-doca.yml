@@ -1,0 +1,17 @@
+---
+# OVS-DOCA 部署 playbook
+# 用法：kolla-ansible -i /root/multinode deploy-ovs-doca.yml [--limit 10.199.71.3]
+#
+# 执行内容：
+#   1. CX7 切换 switchdev eSwitch 模式（bond0 有短暂 failover，流量不中断）
+#   2. 停止 kolla OVS 容器，清理 schema 不兼容的 conf.db
+#   3. 启动 DOCA OVS 容器（ovs-doca-db + ovs-doca-vswitchd）
+#   4. 配置 hw-offload=true, doca-init=true, datapath_type=doca
+#   5. 重建 br-ex + bond0 上联
+#   6. 重启 ovn_controller 重新建立 br-int 和 Geneve 隧道
+
+- hosts: control
+  gather_facts: true
+  become: true
+  roles:
+    - role: ovs-doca

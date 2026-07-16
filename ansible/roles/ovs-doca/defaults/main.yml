@@ -1,0 +1,26 @@
+---
+ovs_doca_registry: "10.199.71.1:4000"
+ovs_doca_db_image: "{{ ovs_doca_registry }}/ovs-doca-db:latest"
+ovs_doca_vswitchd_image: "{{ ovs_doca_registry }}/ovs-doca-vswitchd:latest"
+
+# OVS bridge 和上联口（bond0）
+ovs_doca_bridge: "br-ex"
+ovs_doca_uplink: "bond0"
+ovs_doca_bridge_fail_mode: "standalone"
+
+# CX7 PCI 地址（两个 PF）
+# 覆盖方式：在 multinode 对应主机行内联写
+# 例：ovs_doca_pf_pci_list="0000:38:00.0,0000:38:00.1"
+ovs_doca_pf_pci_list: "0000:38:00.0,0000:38:00.1"
+
+# datapath_type：system（兼容模式）或 doca（完整硬件卸载）
+# 首次部署建议先用 system 验证，再切换到 doca
+ovs_doca_datapath_type: "doca"
+
+# OVS hardware offload 相关配置（只在 datapath_type=doca 时有效）
+ovs_doca_hw_offload: "true"
+ovs_doca_doca_init: "true"
+
+# DB 数据卷路径（复用 kolla 现有 volume）
+ovs_doca_db_volume: "openvswitch_db"
+ovs_doca_logs_volume: "kolla_logs"
