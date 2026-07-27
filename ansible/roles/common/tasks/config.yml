@@ -222,6 +222,7 @@
       - { name: "collectd", enabled: "{{ enable_collectd | bool }}" }
       - { name: "cyborg", enabled: "{{ enable_cyborg | bool }}" }
       - { name: "designate", enabled: "{{ enable_designate | bool }}" }
+      - { name: "dingo-command", enabled: "{{ enable_dingo_command | bool }}" }
       - { name: "etcd", enabled: "{{ enable_etcd | bool }}" }
       - { name: "fluentd", enabled: "{{ enable_fluentd | bool }}" }
       - { name: "freezer", enabled: "{{ enable_freezer | bool }}" }
