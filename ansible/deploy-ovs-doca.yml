@@ -1,0 +1,31 @@
+---
+# OVS-DOCA 独立部署 playbook
+#
+# 适用范围：x86 节点（控制节点 / x86 计算节点）。BF3/DPU 不适用——
+# 那边用 globals.yml.dpu，其中 enable_openvswitch 为 no，下面的门控不成立。
+#
+# 常规部署请走 site.yml：在 globals.yml 设 enable_ovs_doca: "yes"，
+# 标准 openvswitch / ovs-dpdk role 自动跳过，改部署 DOCA OVS 容器；
+# 限定节点用 --limit：
+#   kolla-ansible deploy -i /root/multinode -t ovs-doca --limit <node>
+#
+# 本 playbook 仅用于不经 site.yml 单独重跑 ovs-doca role：
+#   kolla-ansible -i /root/multinode deploy-ovs-doca.yml [--limit <node>]
+#
+# 执行内容：
+#   1. 停止并禁用 kolla 原生 OVS 容器
+#   2. 清理 schema 不兼容的 conf.db（先备份）
+#   3. 启动 DOCA OVS 容器（ovs-doca-db + ovs-doca-vswitchd）
+#   4. 配置 hw-offload / doca-init / datapath_type
+#   5. 重建外部网桥并挂上联口
+#   6. 重启 ovn_controller 重新建立 br-int 和 Geneve 隧道
+#
+# 网卡 switchdev 模式与固件配置需在部署前预先固化，本 playbook 不负责。
+
+- hosts: control:compute-x86
+  gather_facts: true
+  become: true
+  tags: ovs-doca
+  roles:
+    - role: ovs-doca
+      when: (enable_openvswitch | bool) and (enable_ovs_doca | bool)
