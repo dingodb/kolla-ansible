@@ -59,7 +59,7 @@
         - enable_octavia_{{ enable_octavia | bool }}
         - enable_opensearch_{{ enable_opensearch | bool }}
         - enable_opensearch_dashboards_{{ enable_opensearch_dashboards | bool }}
-        - enable_openvswitch_{{ enable_openvswitch | bool }}_enable_ovs_dpdk_{{ enable_ovs_dpdk | bool }}
+        - enable_openvswitch_{{ enable_openvswitch | bool }}_enable_ovs_dpdk_{{ enable_ovs_dpdk | bool }}_enable_ovs_doca_{{ enable_ovs_doca | bool }}
         - enable_ovn_{{ enable_ovn | bool }}
         - enable_placement_{{ enable_placement | bool }}
         - enable_prometheus_{{ enable_prometheus | bool }}
@@ -658,7 +658,7 @@
   gather_facts: false
   hosts:
     - openvswitch
-    - '&enable_openvswitch_True_enable_ovs_dpdk_False'
+    - '&enable_openvswitch_True_enable_ovs_dpdk_False_enable_ovs_doca_False'
   serial: '{{ kolla_serial|default("0") }}'
   max_fail_percentage: >-
     {{ openvswitch_max_fail_percentage |
@@ -667,13 +667,13 @@
   roles:
     - { role: openvswitch,
         tags: openvswitch,
-        when: "(enable_openvswitch | bool) and not (enable_ovs_dpdk | bool)"}
+        when: "(enable_openvswitch | bool) and not (enable_ovs_dpdk | bool) and not (enable_ovs_doca | bool)"}
 
 - name: Apply role ovs-dpdk
   gather_facts: false
   hosts:
     - openvswitch
-    - '&enable_openvswitch_True_enable_ovs_dpdk_True'
+    - '&enable_openvswitch_True_enable_ovs_dpdk_True_enable_ovs_doca_False'
   serial: '{{ kolla_serial|default("0") }}'
   max_fail_percentage: >-
     {{ ovs_dpdk_max_fail_percentage |
@@ -682,7 +682,23 @@
   roles:
     - { role: ovs-dpdk,
         tags: ovs-dpdk,
-        when: "(enable_openvswitch | bool) and (enable_ovs_dpdk | bool)"}
+        when: "(enable_openvswitch | bool) and (enable_ovs_dpdk | bool) and not (enable_ovs_doca | bool)"}
+
+- name: Apply role ovs-doca
+  gather_facts: false
+  hosts:
+    - control
+    - compute-x86
+    - '&enable_openvswitch_True_enable_ovs_dpdk_False_enable_ovs_doca_True'
+  serial: '{{ kolla_serial|default("0") }}'
+  max_fail_percentage: >-
+    {{ ovs_doca_max_fail_percentage |
+       default(kolla_max_fail_percentage) |
+       default(100) }}
+  roles:
+    - { role: ovs-doca,
+        tags: ovs-doca,
+        when: "(enable_openvswitch | bool) and (enable_ovs_doca | bool)"}
 
 - name: Apply role ovn-controller
   gather_facts: false

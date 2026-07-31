@@ -1014,6 +1014,7 @@ enable_openvswitch: "{{ enable_neutron | bool and neutron_plugin_agent != 'linux
 enable_ovn: "{{ enable_neutron | bool and neutron_plugin_agent == 'ovn' }}"
 enable_ovn_sb_db_relay: "{{ enable_ovn | bool }}"
 enable_ovs_dpdk: "no"
+enable_ovs_doca: "no"
 enable_osprofiler: "no"
 enable_placement: "{{ enable_nova | bool or enable_zun | bool }}"
 enable_prometheus: "no"

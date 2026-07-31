@@ -1,0 +1,31 @@
+---
+# ── 镜像 ──────────────────────────────────────────────────────────────────────
+# 镜像仓库取 kolla docker_registry 的 host:port 部分（去掉后面的 namespace 路径），
+# 与 build.sh push 的目标一致。站点可直接覆盖 ovs_doca_*_image 指定完整地址。
+ovs_doca_registry: "{{ docker_registry | default('') | regex_replace('/.*$', '') }}"
+ovs_doca_image_tag: "latest"
+ovs_doca_image_prefix: "{{ (ovs_doca_registry ~ '/') if ovs_doca_registry else '' }}"
+ovs_doca_db_image: "{{ ovs_doca_image_prefix }}ovs-doca-db:{{ ovs_doca_image_tag }}"
+ovs_doca_vswitchd_image: "{{ ovs_doca_image_prefix }}ovs-doca-vswitchd:{{ ovs_doca_image_tag }}"
+
+# ── 网桥与上联口 ──────────────────────────────────────────────────────────────
+# 默认沿用 kolla 原生变量，与标准 openvswitch role 指向同一个网桥/物理口
+ovs_doca_bridge: "{{ neutron_bridge_name }}"
+ovs_doca_uplink: "{{ neutron_external_interface }}"
+ovs_doca_bridge_fail_mode: "standalone"
+
+# datapath_type：system（兼容模式）或 doca（完整硬件卸载）
+# 首次部署建议先用 system 验证，再切换到 doca
+ovs_doca_datapath_type: "doca"
+
+# OVS hardware offload 相关配置（只在 datapath_type=doca 时有效）
+ovs_doca_hw_offload: "true"
+ovs_doca_doca_init: "true"
+
+# DOCA 版 OVS 的 ovsdb schema 版本。已有 conf.db 与此不符时会先备份再重建，
+# 因为 kolla 原生 OVS 与 DOCA OVS 的 schema 无法互相兼容。
+ovs_doca_db_schema_version: "8.5.1"
+
+# DB 数据卷路径（复用 kolla 现有 volume）
+ovs_doca_db_volume: "openvswitch_db"
+ovs_doca_logs_volume: "kolla_logs"

@@ -1,0 +1,165 @@
+---
+# 网卡 switchdev 模式与固件相关配置在部署前预先固化，role 不负责。
+
+# ── 停止 kolla OVS 容器 ───────────────────────────────────────────────────────
+- name: Stop and disable kolla openvswitch containers
+  shell: |
+    # kolla 容器服务名因版本而异，两种命名都尝试
+    for svc in kolla-openvswitch_vswitchd-container kolla-openvswitch_db-container \
+               openvswitch_vswitchd openvswitch_db; do
+      if systemctl is-active --quiet $svc 2>/dev/null; then
+        systemctl stop $svc
+        systemctl disable $svc
+        echo "stopped $svc"
+      fi
+    done
+  changed_when: true
+
+# kolla 原生 OVS 与 DOCA OVS 的 ovsdb schema 版本不同且无法向下兼容，
+# 已有 conf.db 版本不符时必须备份后重建（期望版本见 ovs_doca_db_schema_version）
+- name: Check existing conf.db schema version
+  shell: |
+    DBFILE=/var/lib/containers/storage/volumes/{{ ovs_doca_db_volume }}/_data/conf.db
+    if [ -f "$DBFILE" ]; then
+      python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('schema_version','unknown'))" \
+        "$DBFILE" 2>/dev/null || echo "unreadable"
+    else
+      echo "notfound"
+    fi
+  register: db_schema_check
+  changed_when: false
+
+- name: Backup and remove incompatible conf.db
+  shell: |
+    DBFILE=/var/lib/containers/storage/volumes/{{ ovs_doca_db_volume }}/_data/conf.db
+    if [ -f "$DBFILE" ]; then
+      cp "$DBFILE" "${DBFILE}.bak.$(date +%Y%m%d%H%M%S)"
+      rm -f "$DBFILE"
+      echo "backed up and removed conf.db (schema {{ db_schema_check.stdout }})"
+    fi
+  when: db_schema_check.stdout not in ['notfound', ovs_doca_db_schema_version]
+  register: db_backup_result
+
+# ── 拉取 DOCA OVS 镜像 ────────────────────────────────────────────────────────
+- name: Pull DOCA OVS DB image
+  shell: podman pull --tls-verify=false {{ ovs_doca_db_image }}
+  register: pull_db
+  changed_when: "'Image is up to date' not in pull_db.stdout"
+
+- name: Pull DOCA OVS vswitchd image
+  shell: podman pull --tls-verify=false {{ ovs_doca_vswitchd_image }}
+  register: pull_vswitchd
+  changed_when: "'Image is up to date' not in pull_vswitchd.stdout"
+
+# ── 部署 systemd 服务 ─────────────────────────────────────────────────────────
+- name: Install ovs-doca-db systemd service
+  template:
+    src: ovs-doca-db.service.j2
+    dest: /etc/systemd/system/ovs-doca-db.service
+    mode: '0644'
+  notify: restart ovs-doca-db
+
+- name: Install ovs-doca-vswitchd systemd service
+  template:
+    src: ovs-doca-vswitchd.service.j2
+    dest: /etc/systemd/system/ovs-doca-vswitchd.service
+    mode: '0644'
+  notify: restart ovs-doca-vswitchd
+
+- name: Enable and start ovs-doca-db
+  systemd:
+    name: ovs-doca-db
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for ovsdb socket to appear
+  wait_for:
+    path: /run/openvswitch/db.sock
+    timeout: 30
+
+- name: Enable and start ovs-doca-vswitchd
+  systemd:
+    name: ovs-doca-vswitchd
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for ovs-vswitchd to be ready
+  shell: podman exec ovs-doca-vswitchd ovs-vsctl show
+  register: vswitchd_ready
+  retries: 15
+  delay: 2
+  until: vswitchd_ready.rc == 0
+
+# ── 配置 OVS datapath 和 hardware offload ─────────────────────────────────────
+- name: Set OVS datapath_type and hw-offload options
+  shell: |
+    OVS="podman exec ovs-doca-vswitchd ovs-vsctl"
+    $OVS set Open_vSwitch . \
+        other_config:hw-offload={{ ovs_doca_hw_offload }} \
+        other_config:doca-init={{ ovs_doca_doca_init }}
+  changed_when: true
+
+# ── 重建外部网桥 ──────────────────────────────────────────────────────────────
+- name: Check if external bridge already exists
+  shell: podman exec ovs-doca-vswitchd ovs-vsctl br-exists {{ ovs_doca_bridge }}
+  register: brex_exists
+  failed_when: false
+  changed_when: false
+
+- name: Create external bridge
+  shell: |
+    OVS="podman exec ovs-doca-vswitchd ovs-vsctl"
+    $OVS add-br {{ ovs_doca_bridge }}
+    $OVS set bridge {{ ovs_doca_bridge }} \
+        fail_mode={{ ovs_doca_bridge_fail_mode }} \
+        datapath_type={{ ovs_doca_datapath_type }}
+  when: brex_exists.rc != 0
+
+- name: Set datapath_type if external bridge already exists
+  shell: |
+    podman exec ovs-doca-vswitchd ovs-vsctl \
+      set bridge {{ ovs_doca_bridge }} datapath_type={{ ovs_doca_datapath_type }}
+  when: brex_exists.rc == 0
+  changed_when: true
+
+- name: Check if uplink already attached to external bridge
+  shell: |
+    podman exec ovs-doca-vswitchd ovs-vsctl list-ports {{ ovs_doca_bridge }} \
+      | grep -qx {{ ovs_doca_uplink }}
+  register: uplink_exists
+  failed_when: false
+  changed_when: false
+
+- name: Add uplink to external bridge
+  shell: |
+    podman exec ovs-doca-vswitchd ovs-vsctl \
+      add-port {{ ovs_doca_bridge }} {{ ovs_doca_uplink }}
+  when: uplink_exists.rc != 0
+
+# ── 重启 ovn_controller 重新建立 br-int 和 Geneve 隧道 ───────────────────────
+- name: Restart ovn_controller to repopulate br-int flows
+  shell: |
+    if systemctl is-active --quiet ovn_controller 2>/dev/null; then
+      systemctl restart ovn_controller
+    elif podman ps --filter name=ovn_controller --format '{{.Names}}' | grep -q ovn_controller; then
+      systemctl restart ovn_controller
+    fi
+  changed_when: true
+
+- name: Verify OVS-DOCA is running
+  shell: |
+    echo "=== OVS version ==="
+    podman exec ovs-doca-vswitchd ovs-vsctl --version | head -1
+    echo "=== bridge config ==="
+    podman exec ovs-doca-vswitchd ovs-vsctl list bridge {{ ovs_doca_bridge }} \
+      | grep -E "datapath_type|hw_offload|doca_init" || true
+    echo "=== other_config ==="
+    podman exec ovs-doca-vswitchd ovs-vsctl get Open_vSwitch . other_config
+  register: verify_out
+  changed_when: false
+
+- name: Show OVS-DOCA status
+  debug:
+    msg: "{{ verify_out.stdout_lines }}"
